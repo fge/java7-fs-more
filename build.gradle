@@ -65,6 +65,7 @@ dependencies {
     testCompile(group: "org.assertj", name: "assertj-core", version: "1.7.0");
     testCompile(group: "com.github.marschall", name: "memoryfilesystem",
         version: "0.6.1");
+    testCompile(group: "com.google.jimfs", name: "jimfs", version: "1.0");
 }
 
 javadoc.options.links("http://docs.oracle.com/javase/7/docs/api/");
