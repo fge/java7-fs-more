@@ -8,13 +8,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
-import java.util.Iterator;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static com.github.fge.filesystem.CustomAssertions.shouldHaveThrown;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public final class MorePathsTest
 {
@@ -52,7 +52,6 @@ public final class MorePathsTest
     @Test
     public void resolvingPathWithSameFileSystemProvider()
     {
-
         final String nameElement = "test";
 
         when(path1.getFileSystem()).thenReturn(fs1);
@@ -73,9 +72,10 @@ public final class MorePathsTest
     public void targetAbsolutePathWithNoRootShouldFailAppropriately()
     {
 
+        //noinspection AutoBoxing
         when(path2.isAbsolute()).thenReturn(true);
 
-        //this is default and that is what we need
+        // this is the default and that is what we need
         //when(path2.getRoot()).thenReturn(null);
 
         when(path1.getFileSystem()).thenReturn(fs1);
@@ -86,15 +86,11 @@ public final class MorePathsTest
 
         try {
             MorePaths.resolve(path1, path2);
-
-            failBecauseExceptionWasNotThrown(
-                    UnresolvablePathException.class
-            );
-
+            shouldHaveThrown(UnresolvablePathException.class);
         } catch (UnresolvablePathException e) {
             assertThat(e)
-                    .isExactlyInstanceOf(UnresolvablePathException.class)
-                    .hasMessage("path to resolve is absolute but has no root");
+                .isExactlyInstanceOf(UnresolvablePathException.class)
+                .hasMessage("path to resolve is absolute but has no root");
         }
 
     }
@@ -108,13 +104,15 @@ public final class MorePathsTest
         final Path path1Root = mock(Path.class);
 
         when(path1Root.toString()).thenReturn(root1);
-        when (fs1.getRootDirectories()).thenReturn(Collections.singleton(path1Root));
+        when (fs1.getRootDirectories())
+            .thenReturn(Collections.singleton(path1Root));
 
         final Path path2Root = mock(Path.class);
 
         when(path2Root.toString()).thenReturn(root2);
         when(path2.getRoot()).thenReturn(path2Root);
 
+        //noinspection AutoBoxing
         when(path2.isAbsolute()).thenReturn(true);
 
         //this is default and that is what we need
@@ -128,15 +126,13 @@ public final class MorePathsTest
 
         try {
             MorePaths.resolve(path1, path2);
-
-            shouldHaveThrown(
-                    UnresolvablePathException.class
-            );
+            shouldHaveThrown(UnresolvablePathException.class);
 
         } catch (UnresolvablePathException e) {
             assertThat(e)
-                    .isExactlyInstanceOf(UnresolvablePathException.class)
-                    .hasMessage("root of path to resolve is incompatible with source path");
+                .isExactlyInstanceOf(UnresolvablePathException.class)
+                .hasMessage("root of path to resolve is incompatible "
+                    + "with source path");
         }
 
     }
