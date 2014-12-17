@@ -23,6 +23,7 @@ public final class MorePaths
     @SuppressWarnings("ObjectEquality")
     public static Path resolve(final Path path1, final Path path2)
     {
+
         final FileSystem fs1
             = Objects.requireNonNull(path1).getFileSystem();
         final FileSystem fs2
@@ -53,13 +54,32 @@ public final class MorePaths
             throw new UnresolvablePathException("root of path to resolve "
                 + "is incompatible with source path");
 
-        return null; //TODO
+        Path result = fs1.getPath(p2Root);
+        for (final Path element: path2)
+            result = result.resolve(element.toString());
+
+        return result;
+
     }
 
     private static Path resolvePath2NotAbsolute(final Path path1,
         final Path path2)
     {
-        return null; // TODO
+
+        if(path2.toString().isEmpty())
+            return path1;
+
+        if (path2.getRoot() != null)
+            throw new UnresolvablePathException("path to resolve is not absolute but has a root");
+
+        Path result = path1;
+
+        //append all name elements of path2 with path1 because
+        // path2 is not absolute, not empty & has no root.
+        for (final Path element: path2)
+            result = result.resolve(element.toString());
+
+        return result;
     }
 
 }
