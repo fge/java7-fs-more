@@ -2,6 +2,7 @@ package com.github.fge.filesystem;
 
 import com.github.fge.filesystem.exception.UnresolvablePathException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.file.FileSystem;
 import java.nio.file.InvalidPathException;
@@ -82,6 +83,7 @@ public final class MorePaths
      * @see FileSystem#getRootDirectories()
      */
     @SuppressWarnings("ObjectEquality")
+    @Nonnull
     public static Path resolve(final Path path1, final Path path2)
     {
 
@@ -144,6 +146,29 @@ public final class MorePaths
             ret = ret.resolve(element.toString());
 
         return ret;
+    }
+
+    /**
+     * Normalizes the given path
+     *
+     * <p>On Unix systems and at least up to Oracle JDK 7u51 and 8u15,
+     * {@code Paths.get("").normalize()} will throw an {@link ArrayIndexOutOfBoundsException}
+     * See <a href="https://bugs.openjdk.java.net/browse/JDK-8037945">this bug entry</a>.</p>
+     *
+     * <p>This method works around the problem by testing that the path is
+     * empty (its string representation is empty);
+     * if this is the case, it is returned as is. Otherwise,
+     * normalization is performed normally.</p>
+     *
+     * @param path the path
+     * @return the normalized path
+     */
+    @Nonnull
+    public static Path normalize(Path path) {
+        if(Objects.requireNonNull(path).toString().isEmpty())
+            return path;
+
+        return path.normalize();
     }
 
 }
