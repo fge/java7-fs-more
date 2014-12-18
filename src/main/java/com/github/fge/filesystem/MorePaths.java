@@ -152,23 +152,22 @@ public final class MorePaths
      * Normalizes the given path
      *
      * <p>On Unix systems and at least up to Oracle JDK 7u51 and 8u15,
-     * {@code Paths.get("").normalize()} will throw an {@link ArrayIndexOutOfBoundsException}
-     * See <a href="https://bugs.openjdk.java.net/browse/JDK-8037945">this bug entry</a>.</p>
+     * {@code Paths.get("").normalize()} will throw an {@link
+     * ArrayIndexOutOfBoundsException}. See <a
+     * href="https://bugs.openjdk.java.net/browse/JDK-8037945">this bug
+     * entry</a>.</p>
      *
      * <p>This method works around the problem by testing that the path is
-     * empty (its string representation is empty);
-     * if this is the case, it is returned as is. Otherwise,
-     * normalization is performed normally.</p>
+     * empty (its string representation is empty); if this is the case, it is
+     * returned as is. Otherwise, normalization is performed normally.</p>
      *
      * @param path the path
      * @return the normalized path
      */
     @Nonnull
-    public static Path normalize(Path path) {
-        if(Objects.requireNonNull(path).toString().isEmpty())
-            return path;
-
-        return path.normalize();
+    public static Path normalize(final Path path)
+    {
+        return Objects.requireNonNull(path).toString().isEmpty() ? path
+            : path.normalize();
     }
-
 }
