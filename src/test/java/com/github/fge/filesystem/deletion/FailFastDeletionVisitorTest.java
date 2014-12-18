@@ -20,34 +20,65 @@ public final class FailFastDeletionVisitorTest
 {
     private FileSystem fs;
 
-    private Path foo;
+    private Path nonWritable;
+    private Path withSymlink;
+    private Path symlink;
+    private Path symlinkTarget;
 
     @BeforeClass
     public void initFileSystem()
         throws IOException
     {
-        fs = MemoryFileSystemBuilder.newLinux().build("foo");
+        Path path;
+
+        fs = MemoryFileSystemBuilder.newLinux().build("testfs");
         /*
          * Create one directory and one file; remove the write access on the
          * directory
          */
-        foo = fs.getPath("/foo");
-        Files.createDirectory(foo);
-        Files.createFile(foo.resolve("bar"));
-        Files.setPosixFilePermissions(foo,
+        nonWritable = fs.getPath("/nonWritable");
+        Files.createDirectory(nonWritable);
+        Files.createFile(nonWritable.resolve("bar"));
+        Files.setPosixFilePermissions(nonWritable,
             PosixFilePermissions.fromString("r-xr-xr-x"));
+        /*
+         * Create one file at the top level; create one directory, and in this
+         * directory, create a symlink to the file at the top level.
+         */
+        symlinkTarget = fs.getPath("/target");
+        Files.createFile(symlinkTarget);
+        withSymlink = fs.getPath("/withSymlink");
+        symlink = withSymlink.resolve("symlink");
+        Files.createDirectory(withSymlink);
+        Files.createSymbolicLink(symlink, symlinkTarget);
     }
 
     @Test
     public void nonWritableDirectoryThrowsAccessDeniedException()
     {
-        final FileVisitor<Path> visitor = new FailFastDeletionVisitor(foo);
+        final FileVisitor<Path> visitor
+            = new FailFastDeletionVisitor(nonWritable);
+
         try {
-            Files.walkFileTree(foo, visitor);
+            Files.walkFileTree(nonWritable, visitor);
             shouldHaveThrown(IOException.class);
         } catch (IOException e) {
             assertThat(e).isExactlyInstanceOf(AccessDeniedException.class);
         }
+    }
+
+    @Test
+    public void failFastDeletionWillNotFollowSymlinks()
+        throws IOException
+    {
+        final FileVisitor<Path> visitor
+            = new FailFastDeletionVisitor(withSymlink);
+
+        Files.walkFileTree(withSymlink, visitor);
+
+        assertThat(Files.exists(symlinkTarget)).isTrue();
+        assertThat(Files.notExists(symlink)).isTrue();
+        assertThat(Files.notExists(withSymlink)).isTrue();
     }
 
     @AfterClass
