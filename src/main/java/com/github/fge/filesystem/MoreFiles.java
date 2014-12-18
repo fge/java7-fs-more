@@ -3,11 +3,14 @@ package com.github.fge.filesystem;
 import com.github.fge.filesystem.deletion.DeleteRecursiveOption;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Utility classes in complement of the JDK's {@link Files}
@@ -35,5 +38,11 @@ public final class MoreFiles
             throw new UnsupportedOperationException("TODO!");
 
         Files.walkFileTree(victim, new FailFastDeletionVisitor(victim));
+    }
+
+    @Nonnull
+    public static Set<PosixFilePermission> intModeToPosix(final int intMode)
+    {
+        return null;
     }
 }
