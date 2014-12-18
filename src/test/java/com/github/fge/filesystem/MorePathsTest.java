@@ -22,7 +22,7 @@ public final class MorePathsTest
     }
 
     @Test
-    public void emptyPathNormalizeTest()
+    public void emptyPathToNormalizeIsReturnedAsIs()
     {
         when(path1.toString()).thenReturn("");
         final Path p = MorePaths.normalize(path1);
@@ -30,7 +30,7 @@ public final class MorePathsTest
     }
 
     @Test
-    public void pathNormalizeTest()
+    public void nonEmptyPathToNormalizeCallsRegularNormalize()
     {
         when(path1.toString()).thenReturn("/foo");
         when(path1.normalize()).thenReturn(path2);
