@@ -35,6 +35,7 @@ public final class FailFastDeletionVisitor
         provider = Objects.requireNonNull(victim).getFileSystem().provider();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public FileVisitResult preVisitDirectory(final Path dir,
         final BasicFileAttributes attrs)
