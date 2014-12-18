@@ -2,12 +2,28 @@ package com.github.fge.filesystem.deletion;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Objects;
 
+/**
+ * A fail-fast deletion {@link FileVisitor}
+ *
+ * <p>This visitor takes a {@link Path} as an argument and will attempt to
+ * recursively {@link FileSystemProvider#delete(Path) delete} the path itself
+ * and all entries under it (if the provided path is a directory).</p>
+ *
+ * <p>Symbolic links are <strong>not</strong> followed. If a symbolic link is
+ * encountered, it will be deleted, but not its target (if any).</p>
+ *
+ * @see Files#walkFileTree(Path, FileVisitor)
+ * @see FileVisitOption
+ */
 @ParametersAreNonnullByDefault
 public final class FailFastDeletionVisitor
     implements FileVisitor<Path>
@@ -16,7 +32,7 @@ public final class FailFastDeletionVisitor
 
     public FailFastDeletionVisitor(final Path victim)
     {
-        provider = victim.getFileSystem().provider();
+        provider = Objects.requireNonNull(victim).getFileSystem().provider();
     }
 
     @Override
