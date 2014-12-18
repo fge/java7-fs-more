@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 
-import static com.github.fge.filesystem.CustomAssertions.shouldHaveThrown;
+import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class FailFastDeletionVisitorTest

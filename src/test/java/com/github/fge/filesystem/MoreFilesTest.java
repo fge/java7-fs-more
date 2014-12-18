@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.github.fge.filesystem.CustomAssertions.assertThat;
+import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
 
 public final class MoreFilesTest
 {

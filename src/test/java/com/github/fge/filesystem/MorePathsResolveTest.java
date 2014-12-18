@@ -13,8 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 
-import static com.github.fge.filesystem.CustomAssertions.shouldHaveThrown;
-import static com.github.fge.filesystem.CustomAssertions.assertThat;
+import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
+import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

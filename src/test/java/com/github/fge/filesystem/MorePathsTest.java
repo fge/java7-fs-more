@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 import java.nio.file.Path;
 
-import static com.github.fge.filesystem.CustomAssertions.assertThat;
+import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

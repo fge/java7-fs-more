@@ -1,4 +1,4 @@
-package com.github.fge.filesystem;
+package com.github.fge.filesystem.helpers;
 
 import org.assertj.core.api.ObjectAssert;
 
