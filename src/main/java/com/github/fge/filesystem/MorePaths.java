@@ -79,6 +79,7 @@ public final class MorePaths
      * filesystem
      *
      * @see FileSystem#getPath(String, String...)
+     * @see FileSystem#getRootDirectories()
      */
     @SuppressWarnings("ObjectEquality")
     public static Path resolve(final Path path1, final Path path2)

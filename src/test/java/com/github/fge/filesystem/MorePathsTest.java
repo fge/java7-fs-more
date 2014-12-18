@@ -43,7 +43,7 @@ public final class MorePathsTest
     }
 
     @Test
-    public void resolvingPathWithSameFileSystemCallsFirstPathResolve()
+    public void path2WithSameFileSystemCallsPath1Resolve()
     {
         when(path1.getFileSystem()).thenReturn(fs1);
         when(path2.getFileSystem()).thenReturn(fs1);
@@ -54,7 +54,7 @@ public final class MorePathsTest
     }
 
     @Test
-    public void resolvingPathWithSameFileSystemProvider()
+    public void path2OnSameProviderAndDifferentFsCallsPath1StringResolve()
     {
         final String nameElement = "test";
 
@@ -73,9 +73,8 @@ public final class MorePathsTest
     }
 
     @Test
-    public void targetAbsolutePathWithNoRootShouldFailAppropriately()
+    public void cannotResolveAbsolutePath2WithNoRoot()
     {
-
         //noinspection AutoBoxing
         when(path2.isAbsolute()).thenReturn(true);
 
@@ -96,11 +95,10 @@ public final class MorePathsTest
                 .isExactlyInstanceOf(UnresolvablePathException.class)
                 .hasMessage("path to resolve is absolute but has no root");
         }
-
     }
 
     @Test
-    public void noneOfTheRootPathsOfPath1MatchesPath2Root()
+    public void cannotResolveIfPath2HasNoCommonRootWithPath1()
     {
         final String root1 = "foo";
         final String root2 = "bar";
@@ -131,90 +129,91 @@ public final class MorePathsTest
         try {
             MorePaths.resolve(path1, path2);
             shouldHaveThrown(UnresolvablePathException.class);
-
         } catch (UnresolvablePathException e) {
             assertThat(e)
                 .isExactlyInstanceOf(UnresolvablePathException.class)
                 .hasMessage("root of path to resolve is incompatible "
                     + "with source path");
         }
-
     }
 
     @Test
-    public void fileSystemTest() throws IOException {
+    public void absolutePath2WillStillResolveToPathOnPath1FileSystem()
+        throws IOException
+    {
+        try (
+            final FileSystem fsOne
+                = MemoryFileSystemBuilder.newLinux().build("x");
+            final FileSystem fsTwo
+                = Jimfs.newFileSystem(Configuration.unix());
+        ) {
+            final Path pathOne = fsOne.getPath("/foo");
+            final Path pathTwo = fsTwo.getPath("/bar");
 
-        try (final FileSystem fs1 = MemoryFileSystemBuilder.newLinux()
-                .build("x");final FileSystem fs2 = Jimfs.newFileSystem(Configuration.unix());) {
+            final Path result = MorePaths.resolve(pathOne, pathTwo);
 
-            final Path path1 = fs1.getPath("/foo");
-            final Path path2 = fs2.getPath("/bar");
-
-            final Path result = MorePaths.resolve(path1,path2);
-            assertThat(result.getFileSystem()).isSameAs(fs1);
+            assertThat(result.getFileSystem()).isSameAs(fsOne);
             assertThat(result.toString()).isEqualTo("/bar");
+        }
+    }
 
+    @Test
+    public void cannotResolveNonAbsolutePath2WhichHasARoot()
+    {
+        when(path1.getFileSystem()).thenReturn(fs1);
+        when(path2.getFileSystem()).thenReturn(fs2);
+
+        when(fs1.provider()).thenReturn(provider1);
+        when(fs2.provider()).thenReturn(provider2);
+
+        //noinspection AutoBoxing
+        when(path2.isAbsolute()).thenReturn(false);
+        when(path2.getRoot()).thenReturn(path2);
+
+        try {
+            MorePaths.resolve(path1, path2);
+            shouldHaveThrown(UnresolvablePathException.class);
+        } catch (UnresolvablePathException e) {
+            assertThat(e).isExactlyInstanceOf(UnresolvablePathException.class)
+                .hasMessage("path to resolve is not absolute but has a root");
         }
 
     }
 
     @Test
-    public void fileSystemTestPath2NotAbsoluteWithRoot() throws IOException {
-
+    public void emptyPath2JustReturnsPath1()
+    {
         when(path1.getFileSystem()).thenReturn(fs1);
         when(path2.getFileSystem()).thenReturn(fs2);
 
         when(fs1.provider()).thenReturn(provider1);
         when(fs2.provider()).thenReturn(provider2);
 
-        when(path2.isAbsolute()).thenReturn(false);
-        when(path2.getRoot()).thenReturn(path2);//Right now just doing it so that test could pass.
-
-            try {
-                MorePaths.resolve(path1, path2);
-                shouldHaveThrown(UnresolvablePathException.class);
-            } catch (UnresolvablePathException e) {
-                assertThat(e)
-                        .isExactlyInstanceOf(UnresolvablePathException.class)
-                        .hasMessage("path to resolve is not absolute but has a root");
-            }
-
-    }
-
-    @Test
-    public void path2IsEmpty() throws IOException {
-
-        when(path1.getFileSystem()).thenReturn(fs1);
-        when(path2.getFileSystem()).thenReturn(fs2);
-
-        when(fs1.provider()).thenReturn(provider1);
-        when(fs2.provider()).thenReturn(provider2);
-
+        //noinspection AutoBoxing
         when(path2.isAbsolute()).thenReturn(false);
         when(path2.toString()).thenReturn("");
 
         assertThat(MorePaths.resolve(path1, path2)).isSameAs(path1);
-
     }
 
     @Test
-    public void appendAllNameElements() throws IOException {
-
+    public void fullResolutionWorksEvenWithDifferentPathModels()
+        throws IOException
+    {
         try (
-                final FileSystem fsOne = MemoryFileSystemBuilder.newLinux()
-                        .build("x");
-                final FileSystem fsTwo = Jimfs.newFileSystem(Configuration.windows());
+            final FileSystem fsOne
+                = MemoryFileSystemBuilder.newLinux().build("x");
+            final FileSystem fsTwo
+                = Jimfs.newFileSystem(Configuration.windows());
         ) {
             //Shadowing here
-            final Path path1 = fsOne.getPath("/foo/bar");
-            final Path path2 = fsTwo.getPath("toto\\le\\heros");
+            final Path fsOnePath = fsOne.getPath("/foo/bar");
+            final Path fsTwoPath = fsTwo.getPath("toto\\le\\heros");
 
-            final String path3 = "/foo/bar/toto/le/heros";// I didn't find anything else suitable :(
+            final String expected = "/foo/bar/toto/le/heros";
 
-            assertThat(MorePaths.resolve(path1, path2).toString()).isEqualTo(path3);
+            assertThat(MorePaths.resolve(fsOnePath, fsTwoPath).toString())
+                .isEqualTo(expected);
         }
-
     }
-
-
 }
