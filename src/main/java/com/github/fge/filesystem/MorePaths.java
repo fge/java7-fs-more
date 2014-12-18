@@ -112,19 +112,19 @@ public final class MorePaths
             /*
              * Check if the root of path2 is compatible with path1
              */
-            final String s = root2.toString();
+            final String path2Root = root2.toString();
 
             boolean foundRoot = false;
 
             for (final Path root1: fs1.getRootDirectories())
-                if (root1.toString().equals(s))
+                if (root1.toString().equals(path2Root))
                     foundRoot = true;
 
             if (!foundRoot)
                 throw new UnresolvablePathException("root of path to resolve "
                     + "is incompatible with source path");
 
-            ret = fs1.getPath(s);
+            ret = fs1.getPath(path2Root);
         } else {
             /*
              * Since the empty path is defined as having one empty name
