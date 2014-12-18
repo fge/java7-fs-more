@@ -7,19 +7,15 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Objects;
 
 @ParametersAreNonnullByDefault
 public final class FailFastDeletionVisitor
     implements FileVisitor<Path>
 {
-
-    private Path victim;
     private final FileSystemProvider provider;
 
     public FailFastDeletionVisitor(final Path victim)
     {
-        this.victim = Objects.requireNonNull(victim);
         provider = victim.getFileSystem().provider();
     }
 
@@ -28,8 +24,7 @@ public final class FailFastDeletionVisitor
         final BasicFileAttributes attrs)
         throws IOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        return FileVisitResult.CONTINUE;
     }
 
     @Override
@@ -37,8 +32,8 @@ public final class FailFastDeletionVisitor
         final BasicFileAttributes attrs)
         throws IOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        provider.delete(file);
+        return FileVisitResult.CONTINUE;
     }
 
     @Override
@@ -46,8 +41,7 @@ public final class FailFastDeletionVisitor
         final IOException exc)
         throws IOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        throw exc;
     }
 
     @Override
@@ -55,8 +49,8 @@ public final class FailFastDeletionVisitor
         final IOException exc)
         throws IOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        provider.delete(dir);
+        return FileVisitResult.CONTINUE;
     }
 
 }
