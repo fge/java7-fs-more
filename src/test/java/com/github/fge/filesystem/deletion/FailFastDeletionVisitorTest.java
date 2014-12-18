@@ -24,6 +24,7 @@ public final class FailFastDeletionVisitorTest
     private Path withSymlink;
     private Path symlink;
     private Path symlinkTarget;
+    private Path fileToDelete;
 
     @BeforeClass
     public void initFileSystem()
@@ -51,6 +52,11 @@ public final class FailFastDeletionVisitorTest
         symlink = withSymlink.resolve("symlink");
         Files.createDirectory(withSymlink);
         Files.createSymbolicLink(symlink, symlinkTarget);
+        /*
+         * Create a single file
+         */
+        fileToDelete = fs.getPath("/whatever");
+        Files.createFile(fileToDelete);
     }
 
     @Test
@@ -79,6 +85,18 @@ public final class FailFastDeletionVisitorTest
         assertThat(Files.exists(symlinkTarget)).isTrue();
         assertThat(Files.notExists(symlink)).isTrue();
         assertThat(Files.notExists(withSymlink)).isTrue();
+    }
+
+    @Test
+    public void removingSingleFileWorks()
+        throws IOException
+    {
+        final FileVisitor<Path> visitor
+            = new FailFastDeletionVisitor(fileToDelete);
+
+        Files.walkFileTree(fileToDelete, visitor);
+
+        assertThat(Files.notExists(fileToDelete));
     }
 
     @AfterClass
