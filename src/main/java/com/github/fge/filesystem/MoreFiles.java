@@ -5,11 +5,9 @@ import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
@@ -79,9 +77,23 @@ public final class MoreFiles
 
         final Set<PosixFilePermission> perms
             = PosixFilePermissions.fromString(posixPermissions);
-        final FileAttribute<?> attrs
-            = PosixFilePermissions.asFileAttribute(perms);
 
-        return Files.createFile(path, attrs);
+        Files.createFile(path);
+        return Files.setPosixFilePermissions(path, perms);
+    }
+
+    @Nonnull
+    public static Path createDirectory(final Path dir,
+        final String posixPermissions)
+        throws IOException
+    {
+        Objects.requireNonNull(dir);
+        Objects.requireNonNull(posixPermissions);
+
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString(posixPermissions);
+
+        Files.createDirectory(dir);
+        return Files.setPosixFilePermissions(dir, perms);
     }
 }
