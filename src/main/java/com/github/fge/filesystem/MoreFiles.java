@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
@@ -65,10 +64,5 @@ public final class MoreFiles
         }
 
         return set;
-    }
-
-    public static void main(final String... args)
-    {
-        System.out.println(Arrays.toString(PosixFilePermission.values()));
     }
 }
