@@ -1,10 +1,11 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.deletion.DeleteRecursiveOption;
+import com.github.fge.filesystem.deletion.DeletionMode;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,13 +36,13 @@ public final class MoreFiles
     }
 
     public static void deleteRecursive(final Path victim,
-        final DeleteRecursiveOption option)
+        final DeletionMode option)
         throws IOException
     {
         Objects.requireNonNull(victim);
         Objects.requireNonNull(option);
 
-        if (option == DeleteRecursiveOption.KEEP_GOING)
+        if (option == DeletionMode.KEEP_GOING)
             throw new UnsupportedOperationException("TODO!");
 
         Files.walkFileTree(victim, new FailFastDeletionVisitor(victim));
