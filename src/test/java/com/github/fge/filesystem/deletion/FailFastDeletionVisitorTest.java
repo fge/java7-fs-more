@@ -96,7 +96,7 @@ public final class FailFastDeletionVisitorTest
 
         Files.walkFileTree(fileToDelete, visitor);
 
-        assertThat(Files.notExists(fileToDelete));
+        assertThat(Files.notExists(fileToDelete)).isTrue();
     }
 
     @AfterClass
