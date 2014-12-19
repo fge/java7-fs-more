@@ -1,9 +1,10 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.exception.UnresolvablePathException;
+import com.github.fge.filesystem.exceptions.UnresolvablePathException;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

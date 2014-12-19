@@ -3,8 +3,7 @@ package com.github.fge.filesystem.deletion;
 /**
  * Enumeration of options for recursive deletion
  */
-public enum DeleteRecursiveOption
-{
+public enum DeletionMode {
     /**
      * Fail at the first filesystem entry (file, directory or other) which could
      * not be deleted
