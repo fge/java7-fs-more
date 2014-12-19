@@ -2,30 +2,62 @@ package com.github.fge.filesystem.helpers;
 
 import org.assertj.core.api.ObjectAssert;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Objects;
+import java.util.Set;
 
+@ParametersAreNonnullByDefault
 public class PathAssert
     extends ObjectAssert<Path>
 {
-    public PathAssert(final Path actual)
+    public PathAssert(@Nullable final Path actual)
     {
         super(actual);
     }
 
-    public final PathAssert doesNotExist()
+    public final void doesNotExist()
     {
+        isNotNull();
         if (Files.exists(actual))
             failWithMessage("expected " + actual + " not to exist, but it has "
                 + "been found");
-        return this;
     }
 
     public final PathAssert exists()
     {
+        isNotNull();
         if (Files.notExists(actual))
             failWithMessage("expected " + actual + " to exist, but it has not "
                 + "been found");
         return this;
     }
+
+    public final PathAssert hasPosixPermissions(final String permstring)
+        throws IOException
+    {
+        exists();
+        Objects.requireNonNull(permstring);
+
+        final Set<PosixFilePermission> actualPerms = Files
+            .getPosixFilePermissions(actual, LinkOption.NOFOLLOW_LINKS);
+        final Set<PosixFilePermission> expectedPerms
+            = PosixFilePermissions.fromString(permstring);
+
+        if (!actualPerms.equals(expectedPerms))
+            failWithMessage("path permissions differ from expectations\n"
+                + "\nexpected: <%s>\n\nactual: <%s>",
+                PosixFilePermissions.toString(actualPerms), permstring
+            );
+
+        return this;
+    }
+
+
 }

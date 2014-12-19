@@ -66,4 +66,9 @@ public final class MoreFiles
 
         return set;
     }
+
+    public static Path create(final Path path, final String posixPermissions)
+    {
+        return null;
+    }
 }

@@ -1,8 +1,15 @@
 package com.github.fge.filesystem;
 
+import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
@@ -16,6 +23,17 @@ import static com.github.fge.filesystem.helpers.CustomAssertions
 
 public final class MoreFilesTest
 {
+    private FileSystem fs;
+
+    @BeforeClass
+    public void initFs()
+        throws IOException
+    {
+        fs = MemoryFileSystemBuilder.newLinux()
+            .setUmask(PosixFilePermissions.fromString("rwx------"))
+            .build("MoreFilesTest");
+    }
+
     @Test
     public void outOfRangeNumberThrowsIllegalArgumentException()
     {
@@ -62,5 +80,29 @@ public final class MoreFilesTest
         assertThat(MoreFiles.intModeToPosix(intMode))
             .as("integer mode is correctly translated")
             .isEqualTo(expected);
+    }
+
+    @Test
+    public void createFileIgnoresUmask()
+        throws IOException
+    {
+        final String permstring = "rw-rw-rw-";
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString(permstring);
+        final FileAttribute<Set<PosixFilePermission>> attr
+            = PosixFilePermissions.asFileAttribute(perms);
+
+        final Path createdFile = fs.getPath("/createdFile");
+        final Path actual = MoreFiles.create(createdFile, permstring);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual).exists().hasPosixPermissions(permstring);
+    }
+
+    @AfterClass
+    public void closeFs()
+        throws IOException
+    {
+        fs.close();
     }
 }
