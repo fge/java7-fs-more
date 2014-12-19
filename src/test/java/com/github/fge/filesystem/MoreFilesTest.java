@@ -11,9 +11,30 @@ import java.util.List;
 import java.util.Set;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
+import static com.github.fge.filesystem.helpers.CustomAssertions
+    .shouldHaveThrown;
 
 public final class MoreFilesTest
 {
+    @Test
+    public void outOfRangeNumberThrowsIllegalArgumentException()
+    {
+        try {
+            MoreFiles.intModeToPosix(-1);
+            shouldHaveThrown(IllegalArgumentException.class);
+        } catch (IllegalArgumentException e) {
+            assertThat(e).hasMessage("invalid numeric specification for posix"
+                + " permissions");
+        }
+
+        try {
+            MoreFiles.intModeToPosix(01000);
+            shouldHaveThrown(IllegalArgumentException.class);
+        } catch (IllegalArgumentException e) {
+            assertThat(e).hasMessage("invalid numeric specification for posix"
+                + " permissions");
+        }
+    }
 
 
     @SuppressWarnings("AutoBoxing")
@@ -26,6 +47,7 @@ public final class MoreFilesTest
         list.add(new Object[] { 0,    "---------"});
         list.add(new Object[] { 0640, "rw-r-----"});
         list.add(new Object[] { 0404, "r-----r--"});
+        list.add(new Object[] { 0071, "---rwx--x"});
 
         return list.iterator();
     }

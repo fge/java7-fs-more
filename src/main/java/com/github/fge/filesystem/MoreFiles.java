@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -22,6 +24,12 @@ import java.util.Set;
 @ParametersAreNonnullByDefault
 public final class MoreFiles
 {
+    // TODO: hardcoded; but POSIX permissions will not change anytime soon
+    private static final PosixFilePermission[] PERMISSIONS
+        = PosixFilePermission.values();
+    private static final int PERMISSIONS_LENGTH = PERMISSIONS.length;
+    private static final int INT_MODE_MAX = (1 << PERMISSIONS_LENGTH) - 1;
+
     private MoreFiles()
     {
         throw new Error("nice try!");
@@ -41,8 +49,26 @@ public final class MoreFiles
     }
 
     @Nonnull
-    public static Set<PosixFilePermission> intModeToPosix(final int intMode)
+    public static Set<PosixFilePermission> intModeToPosix(int intMode)
     {
-        return null;
+        final Set<PosixFilePermission> set
+            = EnumSet.noneOf(PosixFilePermission.class);
+
+        if ((intMode & INT_MODE_MAX) != intMode)
+            throw new IllegalArgumentException("invalid numeric specification"
+                + " for posix permissions");
+
+        for (int i = 0; i < PERMISSIONS_LENGTH; i++) {
+            if ((intMode & 1) == 1)
+                set.add(PERMISSIONS[PERMISSIONS_LENGTH - i - 1]);
+            intMode >>= 1;
+        }
+
+        return set;
+    }
+
+    public static void main(final String... args)
+    {
+        System.out.println(Arrays.toString(PosixFilePermission.values()));
     }
 }
