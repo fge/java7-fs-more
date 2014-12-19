@@ -33,7 +33,8 @@ public final class FailFastDeletionVisitorTest
     {
         Path path;
 
-        fs = MemoryFileSystemBuilder.newLinux().build("testfs");
+        fs = MemoryFileSystemBuilder.newLinux()
+            .build("FailFastDeletionVisitorTest");
         /*
          * Create one directory and one file; remove the write access on the
          * directory
