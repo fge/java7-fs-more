@@ -50,12 +50,12 @@ public final class MoreFiles
     @Nonnull
     public static Set<PosixFilePermission> intModeToPosix(int intMode)
     {
-        final Set<PosixFilePermission> set
-            = EnumSet.noneOf(PosixFilePermission.class);
-
         if ((intMode & INT_MODE_MAX) != intMode)
             throw new IllegalArgumentException("invalid numeric specification"
                 + " for posix permissions");
+
+        final Set<PosixFilePermission> set
+            = EnumSet.noneOf(PosixFilePermission.class);
 
         for (int i = 0; i < PERMISSIONS_LENGTH; i++) {
             if ((intMode & 1) == 1)
