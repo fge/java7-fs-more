@@ -1,9 +1,10 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.exception.UnresolvablePathException;
+import com.github.fge.filesystem.exceptions.UnresolvablePathException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+
 import java.nio.file.FileSystem;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;

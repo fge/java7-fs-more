@@ -1,4 +1,4 @@
-package com.github.fge.filesystem.exception;
+package com.github.fge.filesystem.exceptions;
 
 public class UnresolvablePathException extends UnsupportedOperationException {
 
