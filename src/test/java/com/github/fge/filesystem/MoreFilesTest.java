@@ -9,7 +9,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
@@ -18,8 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
-import static com.github.fge.filesystem.helpers.CustomAssertions
-    .shouldHaveThrown;
+import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 
 public final class MoreFilesTest
 {
@@ -82,18 +80,15 @@ public final class MoreFilesTest
             .isEqualTo(expected);
     }
 
-    @Test
+    // Unfortunately, memoryfilesystem doesn't know of umask :(
+    @Test(enabled = false)
     public void createFileIgnoresUmask()
         throws IOException
     {
         final String permstring = "rw-rw-rw-";
-        final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(permstring);
-        final FileAttribute<Set<PosixFilePermission>> attr
-            = PosixFilePermissions.asFileAttribute(perms);
 
         final Path createdFile = fs.getPath("/createdFile");
-        final Path actual = MoreFiles.create(createdFile, permstring);
+        final Path actual = MoreFiles.createFile(createdFile, permstring);
 
         assertThat(actual).isNotNull();
         assertThat(actual).exists().hasPosixPermissions(permstring);

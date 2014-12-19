@@ -9,7 +9,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
@@ -67,8 +69,19 @@ public final class MoreFiles
         return set;
     }
 
-    public static Path create(final Path path, final String posixPermissions)
+    @Nonnull
+    public static Path createFile(final Path path,
+        final String posixPermissions)
+        throws IOException
     {
-        return null;
+        Objects.requireNonNull(path);
+        Objects.requireNonNull(posixPermissions);
+
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString(posixPermissions);
+        final FileAttribute<?> attrs
+            = PosixFilePermissions.asFileAttribute(perms);
+
+        return Files.createFile(path, attrs);
     }
 }
