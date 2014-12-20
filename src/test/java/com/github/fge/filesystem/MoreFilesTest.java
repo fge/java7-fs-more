@@ -1,6 +1,7 @@
 package com.github.fge.filesystem;
 
 import com.github.fge.filesystem.exceptions.InvalidIntModeException;
+import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -80,8 +81,7 @@ public final class MoreFilesTest
             .isEqualTo(expected);
     }
 
-    // Unfortunately, memoryfilesystem doesn't know of umask :(
-    @Test(enabled = false)
+    @Test
     public void createFileIgnoresUmask()
         throws IOException
     {
@@ -91,7 +91,59 @@ public final class MoreFilesTest
         final Path actual = MoreFiles.createFile(createdFile, permstring);
 
         assertThat(actual).isNotNull();
-        assertThat(actual).exists().hasPosixPermissions(permstring);
+        assertThat(actual).exists().isRegularFile()
+            .hasPosixPermissions(permstring);
+    }
+
+    @Test
+    public void createDirectoryIgnoresUmask()
+        throws IOException
+    {
+        final String permstring = "rwxr-x---";
+
+        final Path dir = fs.getPath("/dir");
+        final Path actual = MoreFiles.createDirectory(dir, permstring);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual).exists().isDirectory()
+            .hasPosixPermissions(permstring);
+    }
+
+
+    @Test
+    public void createDirectoriesWillCreateParents()
+        throws IOException
+    {
+        final Path target = fs.getPath("/dir1/dir2/dir3");
+
+        final String permString = "rwxr-xr-x";
+        MoreFiles.createDirectories(target, permString);
+
+        final CustomSoftAssertions soft = CustomSoftAssertions.create();
+
+        Path path = target;
+        soft.assertThat(path).exists().isDirectory()
+            .hasPosixPermissions(permString);
+        path = path.getParent();
+        soft.assertThat(path).exists().isDirectory()
+            .hasPosixPermissions(permString);
+        path = path.getParent();
+        soft.assertThat(path).exists().isDirectory()
+            .hasPosixPermissions(permString);
+
+        soft.assertAll();
+    }
+
+    @Test(dependsOnMethods = "createDirectoriesWillCreateParents")
+    public void createDirectoriesWillNotAttemptToRecreateExistingDirs()
+        throws IOException
+    {
+        final Path target = fs.getPath("/dir1/dir2/dir3");
+
+        MoreFiles.createDirectories(target, "rwx------");
+
+        assertThat(target).exists().isDirectory()
+            .hasPosixPermissions("rwxr-xr-x");
     }
 
     @AfterClass

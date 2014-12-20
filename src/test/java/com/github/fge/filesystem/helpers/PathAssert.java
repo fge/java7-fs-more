@@ -59,5 +59,23 @@ public class PathAssert
         return this;
     }
 
+    public final PathAssert isRegularFile()
+    {
+        exists();
 
+        if (!Files.isRegularFile(actual, LinkOption.NOFOLLOW_LINKS))
+            failWithMessage("expected %s to be a regular file", actual);
+
+        return this;
+    }
+
+    public final PathAssert isDirectory()
+    {
+        exists();
+
+        if (!Files.isDirectory(actual, LinkOption.NOFOLLOW_LINKS))
+            failWithMessage("expected %s to be a directory", actual);
+
+        return this;
+    }
 }

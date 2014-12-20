@@ -11,7 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -107,6 +109,37 @@ public final class MoreFiles
             = PosixFilePermissions.fromString(posixPermissions);
 
         Files.createDirectory(dir);
-        return Files.setPosixFilePermissions(dir, perms);
+        Files.setPosixFilePermissions(dir, perms);
+
+        return dir;
+    }
+
+    @Nonnull
+    public static Path createDirectories(final Path dir,
+        final String posixPermissions)
+        throws IOException
+    {
+        Objects.requireNonNull(dir);
+        Objects.requireNonNull(posixPermissions);
+
+        final Path realDir = dir.toAbsolutePath();
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString(posixPermissions);
+
+        final List<Path> created = new ArrayList<>(realDir.getNameCount());
+
+        Path parent = realDir;
+
+        while (parent != null && !Files.exists(parent)) {
+            created.add(parent);
+            parent = parent.getParent();
+        }
+
+        Files.createDirectories(realDir);
+
+        for (final Path path: created)
+            Files.setPosixFilePermissions(path, perms);
+
+        return dir;
     }
 }
