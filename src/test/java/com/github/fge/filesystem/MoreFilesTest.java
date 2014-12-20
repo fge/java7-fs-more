@@ -1,5 +1,6 @@
 package com.github.fge.filesystem;
 
+import com.github.fge.filesystem.exceptions.InvalidIntModeException;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -40,16 +41,14 @@ public final class MoreFilesTest
             MoreFiles.intModeToPosix(-1);
             shouldHaveThrown(IllegalArgumentException.class);
         } catch (IllegalArgumentException e) {
-            assertThat(e).hasMessage("invalid numeric specification for posix"
-                + " permissions");
+            assertThat(e).isExactlyInstanceOf(InvalidIntModeException.class);
         }
 
         try {
             MoreFiles.intModeToPosix(01000);
             shouldHaveThrown(IllegalArgumentException.class);
         } catch (IllegalArgumentException e) {
-            assertThat(e).hasMessage("invalid numeric specification for posix"
-                + " permissions");
+            assertThat(e).isExactlyInstanceOf(InvalidIntModeException.class);
         }
     }
 

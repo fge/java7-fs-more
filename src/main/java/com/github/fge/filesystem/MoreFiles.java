@@ -2,6 +2,7 @@ package com.github.fge.filesystem;
 
 import com.github.fge.filesystem.deletion.DeletionMode;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
+import com.github.fge.filesystem.exceptions.InvalidIntModeException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -48,12 +49,24 @@ public final class MoreFiles
         Files.walkFileTree(victim, new FailFastDeletionVisitor(victim));
     }
 
+    /**
+     * Convert an integer into a set of {@link PosixFilePermission}s
+     *
+     * <p>Note that this method will not try and read {@code 755} "in octal";
+     * you <strong>must</strong> prefix your integer with {@code 0} so that the
+     * constant be octal, as in {@code 0755}.</p>
+     *
+     * @param intMode the mode
+     * @return a set of POSIX permissions
+     * @throws InvalidIntModeException invalid integer mode
+     *
+     * @see Files#setPosixFilePermissions(Path, Set)
+     */
     @Nonnull
     public static Set<PosixFilePermission> intModeToPosix(int intMode)
     {
         if ((intMode & INT_MODE_MAX) != intMode)
-            throw new IllegalArgumentException("invalid numeric specification"
-                + " for posix permissions");
+            throw new InvalidIntModeException();
 
         final Set<PosixFilePermission> set
             = EnumSet.noneOf(PosixFilePermission.class);
