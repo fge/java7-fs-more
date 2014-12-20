@@ -27,6 +27,7 @@ public final class MoreFilesTest
     public void initFs()
         throws IOException
     {
+        // TODO: umask's meaning is INVERTED :(
         fs = MemoryFileSystemBuilder.newLinux()
             .setUmask(PosixFilePermissions.fromString("rwx------"))
             .build("MoreFilesTest");
