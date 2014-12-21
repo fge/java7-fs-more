@@ -13,8 +13,8 @@ public final class TextContentModifier
     private final BufferedReader reader;
     private final BufferedWriter writer;
 
-    private ContentBufferedReader wrappedReader;
-    private ContentBufferedWriter wrappedWriter;
+    private volatile ContentBufferedReader wrappedReader;
+    private volatile ContentBufferedWriter wrappedWriter;
 
     public TextContentModifier(final Path toModify, final Charset charset)
         throws IOException

@@ -13,8 +13,8 @@ public final class BinaryContentModifier
     private final InputStream in;
     private final OutputStream out;
 
-    private ContentInputStream wrappedIn = null;
-    private ContentOutputStream wrappedOut = null;
+    private volatile ContentInputStream wrappedIn = null;
+    private volatile ContentOutputStream wrappedOut = null;
 
     public BinaryContentModifier(final Path toModify)
         throws IOException
