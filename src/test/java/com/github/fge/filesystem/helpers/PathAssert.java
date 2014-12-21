@@ -81,32 +81,39 @@ public class PathAssert
 
         return this;
     }
-    
-    public final PathAssert hasAccessTime(final FileTime fileTime) throws IOException {
-    	exists();
-    	
-    	Objects.requireNonNull(fileTime);
-    	final BasicFileAttributeView view = Files.getFileAttributeView(actual, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-    	FileTime time = view.readAttributes().lastAccessTime();
-    	if(!(time.equals(fileTime))) {
-    		failWithMessage("Access time differ from expectation\n" 
-    				+ "\n expect: <%s>\n actual: <%s>", 
-    				time, fileTime);
-    	}
-		return this;
+
+    public final PathAssert hasAccessTime(final FileTime fileTime)
+        throws IOException
+    {
+        exists();
+        Objects.requireNonNull(fileTime);
+
+        final BasicFileAttributeView view
+            = Files.getFileAttributeView(actual,
+            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+        final FileTime time = view.readAttributes().lastAccessTime();
+
+        if (!time.equals(fileTime))
+            failWithMessage("Access time differs from expectations\n"
+                + "\n expect: <%s>\n actual: <%s>", time, fileTime);
+
+        return this;
     }
-    
-    public final PathAssert hasModificationTime(final FileTime fileTime) throws IOException {
-    	exists();
-    	
-    	Objects.requireNonNull(fileTime);
-    	final BasicFileAttributeView view = Files.getFileAttributeView(actual, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-    	FileTime time = view.readAttributes().lastModifiedTime();
-    	if(!(time.equals(fileTime))) {
-    		failWithMessage("Modification time differ from expectation\n" 
-    				+ "\n expect: <%s>\n actual: <%s>", 
-    				time, fileTime);
-    	}
-		return this;
+
+    public final PathAssert hasModificationTime(final FileTime fileTime)
+        throws IOException
+    {
+        exists();
+        Objects.requireNonNull(fileTime);
+
+        final BasicFileAttributeView view = Files.getFileAttributeView(actual,
+            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+        final FileTime time = view.readAttributes().lastModifiedTime();
+
+        if (!time.equals(fileTime))
+            failWithMessage("Modification time differ from expectation\n"
+                + "\n expect: <%s>\n actual: <%s>", time, fileTime);
+
+        return this;
     }
 }
