@@ -11,34 +11,35 @@ import java.util.*;
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public final class ModeParserTest {
-
+public final class ModeParserTest
+{
     @DataProvider
     public Iterator<Object[]> invalidModeInstructions()
     {
         final List<Object[]> list = new ArrayList<>();
 
-        list.add(new Object[] { ""});
-        list.add(new Object[] { "ur"});
-        list.add(new Object[] { "+r"});
+        list.add(new Object[]{ "" });
+        list.add(new Object[]{ "ur" });
+        list.add(new Object[]{ "+r" });
 
         return list.iterator();
     }
 
     @Test(dataProvider = "invalidModeInstructions")
-    public void invalidModeInstructionThrowsAppropriateException (final String asString)
+    public void invalidModeInstructionThrowsAppropriateException(
+        final String instruction)
     {
-        final Set<PosixFilePermission> toAdd = EnumSet.noneOf(PosixFilePermission.class);
-        final Set<PosixFilePermission> toRemove = EnumSet.noneOf(PosixFilePermission.class);
+        final Set<PosixFilePermission> toAdd
+            = EnumSet.noneOf(PosixFilePermission.class);
+        final Set<PosixFilePermission> toRemove
+            = EnumSet.noneOf(PosixFilePermission.class);
 
         try {
-            ModeParser.parseOne(asString, toAdd, toRemove);
+            ModeParser.parseOne(instruction, toAdd, toRemove);
             shouldHaveThrown(InvalidModeInstructionException.class);
         } catch (InvalidModeInstructionException e) {
-            assertThat(e).isExactlyInstanceOf(InvalidModeInstructionException.class)
-                    .hasMessage(asString);
+            assertThat(e).isExactlyInstanceOf(
+                InvalidModeInstructionException.class).hasMessage(instruction);
         }
-        
     }
-    
 }

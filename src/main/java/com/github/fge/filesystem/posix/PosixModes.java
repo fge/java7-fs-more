@@ -17,6 +17,7 @@ public final class PosixModes
 
     private static final int PERMISSIONS_LENGTH = PERMISSIONS.length;
     private static final int INT_MODE_MAX = (1 << PERMISSIONS_LENGTH) - 1;
+
     private PosixModes()
     {
         throw new Error("nice try!");

@@ -40,11 +40,11 @@ public final class PosixModesTest
     {
         final List<Object[]> list = new ArrayList<>();
 
-        list.add(new Object[] { 0755, "rwxr-xr-x"});
-        list.add(new Object[] { 0,    "---------"});
-        list.add(new Object[] { 0640, "rw-r-----"});
-        list.add(new Object[] { 0404, "r-----r--"});
-        list.add(new Object[] { 0071, "---rwx--x"});
+        list.add(new Object[] { 0755, "rwxr-xr-x" });
+        list.add(new Object[] { 0,    "---------" });
+        list.add(new Object[] { 0640, "rw-r-----" });
+        list.add(new Object[] { 0404, "r-----r--" });
+        list.add(new Object[] { 0071, "---rwx--x" });
 
         return list.iterator();
     }
