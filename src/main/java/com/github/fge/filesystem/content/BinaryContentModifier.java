@@ -13,6 +13,9 @@ public final class BinaryContentModifier
     private final InputStream in;
     private final OutputStream out;
 
+    private ContentInputStream wrappedIn = null;
+    private ContentOutputStream wrappedOut = null;
+
     public BinaryContentModifier(final Path toModify)
         throws IOException
     {
@@ -25,33 +28,43 @@ public final class BinaryContentModifier
     @Override
     public InputStream getInputStream()
     {
-        return in;
+        synchronized (in) {
+            if (wrappedIn == null)
+                wrappedIn = new ContentInputStream(this, in);
+        }
+
+        return wrappedIn;
     }
 
     @Override
     public OutputStream getOutputStream()
     {
-        return out;
+        synchronized (out) {
+            if (wrappedOut == null)
+                wrappedOut = new ContentOutputStream(this, out);
+        }
+
+        return wrappedOut;
     }
 
     @Override
     protected void closeInput()
         throws IOException
     {
-        in.close();
+        wrappedIn.close();
     }
 
     @Override
     protected void closeOutput()
         throws IOException
     {
-        out.close();
+        wrappedOut.close();
     }
 
     @Override
     public void flush()
         throws IOException
     {
-        out.flush();
+        wrappedOut.flush();
     }
 }

@@ -13,6 +13,9 @@ public final class TextContentModifier
     private final BufferedReader reader;
     private final BufferedWriter writer;
 
+    private ContentBufferedReader wrappedReader;
+    private ContentBufferedWriter wrappedWriter;
+
     public TextContentModifier(final Path toModify, final Charset charset)
         throws IOException
     {
@@ -24,33 +27,43 @@ public final class TextContentModifier
     @Override
     public BufferedReader getBufferedReader()
     {
-        return reader;
+        synchronized (reader) {
+            if (wrappedReader == null)
+                wrappedReader = new ContentBufferedReader(reader, this);
+        }
+
+        return wrappedReader;
     }
 
     @Override
     public BufferedWriter getBufferedWriter()
     {
-        return writer;
+        synchronized (writer) {
+            if (wrappedWriter == null)
+                wrappedWriter = new ContentBufferedWriter(writer, this);
+        }
+
+        return wrappedWriter;
     }
 
     @Override
     protected void closeInput()
         throws IOException
     {
-        reader.close();
+        wrappedReader.close();
     }
 
     @Override
     protected void closeOutput()
         throws IOException
     {
-        writer.close();
+        wrappedWriter.close();
     }
 
     @Override
     public void flush()
         throws IOException
     {
-        writer.flush();
+        wrappedWriter.flush();
     }
 }
