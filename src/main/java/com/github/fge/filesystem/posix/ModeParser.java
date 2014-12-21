@@ -22,7 +22,33 @@ public final class ModeParser
         final Set<PosixFilePermission> toAdd,
         final Set<PosixFilePermission> toRemove)
     {
-        if (instruction.indexOf('+') < 0 && instruction.indexOf('-') < 0)
+        final int plus = instruction.indexOf('+');
+        final int minus = instruction.indexOf('-');
+
+        if (plus < 0 && minus < 0)
             throw new InvalidModeInstructionException(instruction);
+
+        final String who;
+        final String what;
+        final Set<PosixFilePermission> set;
+
+        if (plus >= 0) {
+            who = plus == 0 ? "ugo" : instruction.substring(0, plus);
+            what = instruction.substring(plus + 1);
+            set = toAdd;
+        } else {
+            // If it's not plusIndex it's minusIndex
+            who = minus == 0 ? "ugo" : instruction.substring(0, minus);
+            what = instruction.substring(minus + 1);
+            set = toRemove;
+        }
+
+        modifySet(who, what, set);
+    }
+
+    private static void modifySet(final String who, final String what,
+        final Set<PosixFilePermission> set)
+    {
+        // TODO
     }
 }

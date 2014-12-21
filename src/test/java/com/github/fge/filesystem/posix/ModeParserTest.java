@@ -20,7 +20,6 @@ public final class ModeParserTest
 
         list.add(new Object[]{ "" });
         list.add(new Object[]{ "ur" });
-        list.add(new Object[]{ "+r" });
 
         return list.iterator();
     }
