@@ -43,12 +43,52 @@ public final class ModeParser
             set = toRemove;
         }
 
-        modifySet(who, what, set);
+        if(what.isEmpty())
+            throw new InvalidModeInstructionException(instruction);
+        
+        modifySet(who, what, set, instruction);
     }
 
     private static void modifySet(final String who, final String what,
-        final Set<PosixFilePermission> set)
+        final Set<PosixFilePermission> set, final String instruction)
     {
-        // TODO
+        final int whoLength = who.length();
+        final int whatLength = what.length();
+        for(int i=0;i<whoLength;i++) {
+            int whoOrdinal = 0;
+            switch(who.charAt(i)) {
+                case 'u':
+                    whoOrdinal = (0*3); // just for the sake of keeping same standard for all
+                    break;
+                case 'g':
+                    whoOrdinal = (1*3);
+                    break;
+                case 'o':
+                    whoOrdinal = (2*3);
+                    break;
+                default:
+                    throw new InvalidModeInstructionException(instruction);
+            }
+            for(int j=0;j<whatLength;j++) {
+                int whatOrdinal=0;
+                switch(what.charAt(j)) {
+                    case 'r':
+                        whatOrdinal = whoOrdinal+0;
+                        break;
+                    case 'w':
+                        whatOrdinal = whoOrdinal+1;
+                        break;
+                    case 'x':
+                        whatOrdinal = whoOrdinal+2;
+                        break;
+                    case 'X':
+                        throw new UnsupportedOperationException(instruction);
+                    default:
+                        throw new InvalidModeInstructionException(instruction);
+                }
+                //add to set
+                set.add(PosixModes.PERMISSIONS[whatOrdinal]);
+            }
+        }
     }
 }
