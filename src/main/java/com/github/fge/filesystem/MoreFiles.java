@@ -45,6 +45,29 @@ public final class MoreFiles
     }
 
     @Nonnull
+    public static Path setMode(final int mode, final Path path)
+        throws IOException
+    {
+        Objects.requireNonNull(path);
+        final Set<PosixFilePermission> perms = PosixModes.intModeToPosix(mode);
+
+        return Files.setPosixFilePermissions(path, perms);
+    }
+
+    @Nonnull
+    public static Path setMode(final String modeString, final Path path)
+        throws IOException
+    {
+        Objects.requireNonNull(modeString);
+        Objects.requireNonNull(path);
+
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString(modeString);
+
+        return Files.setPosixFilePermissions(path, perms);
+    }
+
+    @Nonnull
     public static Path createFile(final Path path,
         final String posixPermissions)
         throws IOException
