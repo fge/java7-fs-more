@@ -1,14 +1,20 @@
 package com.github.fge.filesystem;
 
 import com.github.fge.filesystem.helpers.CustomSoftAssertions;
+import com.github.fge.filesystem.helpers.PathAssert;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermissions;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
@@ -16,6 +22,7 @@ import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
 public final class MoreFilesTest
 {
     private FileSystem fs;
+    private FileTime fileTime;
 
     @BeforeClass
     public void initFs()
@@ -25,6 +32,7 @@ public final class MoreFilesTest
         fs = MemoryFileSystemBuilder.newLinux()
             .setUmask(PosixFilePermissions.fromString("rwx------"))
             .build("MoreFilesTest");
+        fileTime = FileTime.fromMillis(System.currentTimeMillis()-10000);
     }
 
     @Test
@@ -90,6 +98,13 @@ public final class MoreFilesTest
 
         assertThat(target).exists().isDirectory()
             .hasPosixPermissions("rwxr-xr-x");
+    }
+    
+    public void testTouch() throws IOException {
+    	Path filePath = fs.getPath("text.txt");
+    	Path created  = MoreFiles.touch(filePath);
+    	assertThat(filePath).exists().isNotNull();
+    	assertThat(created).exists().isNotNull().isEqualTo(filePath);	
     }
 
     @AfterClass

@@ -7,10 +7,12 @@ import com.github.fge.filesystem.posix.PosixModes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+
 import java.io.IOException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
@@ -197,5 +199,14 @@ public final class MoreFiles
 
         for (final Path path: created)
             Files.setPosixFilePermissions(path, perms);
+    }
+    
+    @Nonnull
+    public static Path touch(final Path path) throws IOException {
+    	if(!Files.exists(path)) {
+    		return Files.createFile(path);
+    	}
+    	FileTime time = FileTime.fromMillis(System.currentTimeMillis());
+    	return MorePaths.setTimes(path, time);
     }
 }

@@ -5,10 +5,15 @@ import com.github.fge.filesystem.exceptions.UnresolvablePathException;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.ProviderMismatchException;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Objects;
 
@@ -170,5 +175,12 @@ public final class MorePaths
     {
         return Objects.requireNonNull(path).toString().isEmpty() ? path
             : path.normalize();
+    }
+    
+    @Nonnull
+    public static Path setTimes(final Path path, FileTime fileTime) throws IOException {
+    	BasicFileAttributeView view = Files.getFileAttributeView(path, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+    	view.setTimes(fileTime, fileTime, fileTime);
+		return path;
     }
 }
