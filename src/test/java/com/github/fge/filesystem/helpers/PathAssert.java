@@ -4,10 +4,13 @@ import org.assertj.core.api.ObjectAssert;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
@@ -77,5 +80,33 @@ public class PathAssert
             failWithMessage("expected %s to be a directory", actual);
 
         return this;
+    }
+    
+    public final PathAssert hasAccessTime(final FileTime fileTime) throws IOException {
+    	exists();
+    	
+    	Objects.requireNonNull(fileTime);
+    	final BasicFileAttributeView view = Files.getFileAttributeView(actual, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+    	FileTime time = view.readAttributes().lastAccessTime();
+    	if(!(time.equals(fileTime))) {
+    		failWithMessage("Access time differ from expectation\n" 
+    				+ "\n expect: <%s>\n actual: <%s>", 
+    				time, fileTime);
+    	}
+		return this;
+    }
+    
+    public final PathAssert hasModificationTime(final FileTime fileTime) throws IOException {
+    	exists();
+    	
+    	Objects.requireNonNull(fileTime);
+    	final BasicFileAttributeView view = Files.getFileAttributeView(actual, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+    	FileTime time = view.readAttributes().lastModifiedTime();
+    	if(!(time.equals(fileTime))) {
+    		failWithMessage("Modification time differ from expectation\n" 
+    				+ "\n expect: <%s>\n actual: <%s>", 
+    				time, fileTime);
+    	}
+		return this;
     }
 }
