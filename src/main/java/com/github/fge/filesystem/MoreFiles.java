@@ -1,5 +1,12 @@
 package com.github.fge.filesystem;
 
+import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
+import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
+import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
+import com.github.fge.filesystem.posix.PosixModes;
+
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -10,14 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
-import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
-import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
-import com.github.fge.filesystem.posix.PosixModes;
 
 /**
  * Utility classes in complement of the JDK's {@link Files}
@@ -41,23 +40,24 @@ public final class MoreFiles
         Objects.requireNonNull(victim);
         Objects.requireNonNull(option);
 
-        FileVisitor<Path> visitor;
+        final FileVisitor<Path> visitor;
 
-		switch (option) {
-		case KEEP_GOING:
-			RecursiveDeletionException exception = new RecursiveDeletionException();
-			visitor = new KeepGoingDeletionVisitor(victim, exception);
-			Files.walkFileTree(victim, visitor);
-			if (exception.getSuppressed().length != 0)
-				throw exception;
-			break;
-		case FAIL_FAST:
-			visitor = new FailFastDeletionVisitor(victim);
-			Files.walkFileTree(victim, visitor);
-			break;
-		default:
-			throw new IllegalStateException();
-		}
+        switch (option) {
+            case KEEP_GOING:
+                final RecursiveDeletionException exception
+                    = new RecursiveDeletionException();
+                visitor = new KeepGoingDeletionVisitor(victim, exception);
+                Files.walkFileTree(victim, visitor);
+                if (exception.getSuppressed().length != 0)
+                    throw exception;
+                break;
+            case FAIL_FAST:
+                visitor = new FailFastDeletionVisitor(victim);
+                Files.walkFileTree(victim, visitor);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Nonnull

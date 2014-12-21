@@ -1,7 +1,7 @@
 package com.github.fge.filesystem.copy;
 
 import com.github.fge.filesystem.MorePaths;
-import com.github.fge.filesystem.exceptions.RecursiveOperationException;
+import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -16,7 +16,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 public final class KeepGoingCopyVisitor
     implements FileVisitor<Path>
 {
-    private final RecursiveOperationException exception;
+    private final RecursiveCopyException exception;
     private final Path src;
     private final Path dst;
 
@@ -24,7 +24,7 @@ public final class KeepGoingCopyVisitor
     private Path currentDst;
 
     public KeepGoingCopyVisitor(final Path src, final Path dst,
-        final RecursiveOperationException exception)
+        final RecursiveCopyException exception)
     {
         this.exception = exception;
         this.src = src;

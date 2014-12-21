@@ -1,6 +1,6 @@
 package com.github.fge.filesystem.copy;
 
-import com.github.fge.filesystem.exceptions.RecursiveOperationException;
+import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import com.google.common.jimfs.Configuration;
@@ -72,8 +72,8 @@ public final class KeepGoingCopyVisitorTest
     public void successfulRecursiveCopyCreatesAllDirsAndFiles()
         throws IOException
     {
-        final RecursiveOperationException exception
-            = new RecursiveOperationException();
+        final RecursiveCopyException exception
+            = new RecursiveCopyException();
         final FileVisitor<Path> visitor
             = new KeepGoingCopyVisitor(srcSuccess, dstSuccess, exception);
 
@@ -99,8 +99,8 @@ public final class KeepGoingCopyVisitorTest
     public void failureToCopyThrowsAppropriateException()
         throws IOException
     {
-        final RecursiveOperationException exception
-            = new RecursiveOperationException();
+        final RecursiveCopyException exception
+            = new RecursiveCopyException();
         final FileVisitor<Path> visitor
             = new KeepGoingCopyVisitor(srcFailure, dstFailure, exception);
 
