@@ -20,6 +20,7 @@ package com.github.fge.filesystem.helpers;
 
 import org.assertj.core.api.Assertions;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNullableByDefault;
 import java.nio.file.Path;
 
@@ -32,7 +33,8 @@ public final class CustomAssertions
         throw new Error("nice try!");
     }
 
-    public static void shouldHaveThrown(final Class<? extends Throwable> e)
+    public static void shouldHaveThrown(
+        @Nonnull final Class<? extends Throwable> e)
     {
         failBecauseExceptionWasNotThrown(e);
     }
