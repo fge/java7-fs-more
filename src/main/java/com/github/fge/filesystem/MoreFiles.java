@@ -2,6 +2,7 @@ package com.github.fge.filesystem;
 
 import com.github.fge.filesystem.deletion.DeletionMode;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
+import com.github.fge.filesystem.posix.PosixModes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -54,8 +55,18 @@ public final class MoreFiles
         final Set<PosixFilePermission> perms
             = PosixFilePermissions.fromString(posixPermissions);
 
-        Files.createFile(path);
-        return Files.setPosixFilePermissions(path, perms);
+        return doCreateFile(path, perms);
+    }
+
+    @Nonnull
+    public static Path createFile(final Path path, final int mode)
+        throws IOException
+    {
+        Objects.requireNonNull(path);
+
+        final Set<PosixFilePermission> perms = PosixModes.intModeToPosix(mode);
+
+        return doCreateFile(path, perms);
     }
 
     @Nonnull
@@ -69,10 +80,18 @@ public final class MoreFiles
         final Set<PosixFilePermission> perms
             = PosixFilePermissions.fromString(posixPermissions);
 
-        Files.createDirectory(dir);
-        Files.setPosixFilePermissions(dir, perms);
+        return doCreateDirectory(dir, perms);
+    }
 
-        return dir;
+    @Nonnull
+    public static Path createDirectory(final Path dir, final int mode)
+        throws IOException
+    {
+        Objects.requireNonNull(dir);
+
+        final Set<PosixFilePermission> perms = PosixModes.intModeToPosix(mode);
+
+        return doCreateDirectory(dir, perms);
     }
 
     @Nonnull
@@ -87,7 +106,46 @@ public final class MoreFiles
         final Set<PosixFilePermission> perms
             = PosixFilePermissions.fromString(posixPermissions);
 
-        final List<Path> created = new ArrayList<>(realDir.getNameCount());
+        doCreateDirectories(realDir, perms);
+
+        return dir;
+    }
+
+    @Nonnull
+    public static Path createDirectories(final Path dir, final int mode)
+        throws IOException
+    {
+        Objects.requireNonNull(dir);
+
+        final Path realDir = dir.toAbsolutePath();
+        final Set<PosixFilePermission> perms = PosixModes.intModeToPosix(mode);
+
+        doCreateDirectories(realDir, perms);
+
+        return dir;
+    }
+
+    private static Path doCreateFile(final Path path,
+        final Set<PosixFilePermission> perms)
+        throws IOException
+    {
+        Files.createFile(path);
+        return Files.setPosixFilePermissions(path, perms);
+    }
+
+    private static Path doCreateDirectory(final Path dir,
+        final Set<PosixFilePermission> perms)
+        throws IOException
+    {
+        Files.createDirectory(dir);
+        return Files.setPosixFilePermissions(dir, perms);
+    }
+
+    private static void doCreateDirectories(final Path realDir,
+        final Set<PosixFilePermission> perms)
+        throws IOException
+    {
+        final List<Path> created = new ArrayList<>();
 
         Path parent = realDir;
 
@@ -100,7 +158,5 @@ public final class MoreFiles
 
         for (final Path path: created)
             Files.setPosixFilePermissions(path, perms);
-
-        return dir;
     }
 }
