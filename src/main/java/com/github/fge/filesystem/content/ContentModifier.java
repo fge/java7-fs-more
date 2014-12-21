@@ -1,5 +1,6 @@
 package com.github.fge.filesystem.content;
 
+import com.github.fge.filesystem.exceptions.ContentModificationException;
 import com.github.fge.filesystem.exceptions.RenameFailureException;
 
 import java.io.BufferedReader;
@@ -87,9 +88,7 @@ public abstract class ContentModifier
     public final void close()
         throws IOException
     {
-        IOException exception = ioFailed
-            ? new IOException("one or more I/O operation(s) failed, will not "
-                + "rename")
+        IOException exception = ioFailed ? new ContentModificationException()
             : null;
 
         try {
@@ -120,7 +119,8 @@ public abstract class ContentModifier
                     StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException ignored) {
-                Files.move(tempfile, toModify, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempfile, toModify,
+                    StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             throw new RenameFailureException(e);
