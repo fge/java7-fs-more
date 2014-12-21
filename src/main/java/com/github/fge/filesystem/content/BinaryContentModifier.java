@@ -16,10 +16,10 @@ public final class BinaryContentModifier
     private volatile ContentInputStream wrappedIn = null;
     private volatile ContentOutputStream wrappedOut = null;
 
-    public BinaryContentModifier(final Path toModify)
+    public BinaryContentModifier(final Path toModify, final Path tempfile)
         throws IOException
     {
-        super(toModify);
+        super(toModify, tempfile);
         in = Files.newInputStream(toModify, StandardOpenOption.READ);
         out = Files.newOutputStream(tempfile, StandardOpenOption.WRITE,
             StandardOpenOption.TRUNCATE_EXISTING);

@@ -45,12 +45,29 @@ public abstract class ContentModifier
 
     private volatile boolean ioFailed = false;
 
-    protected ContentModifier(final Path toModify)
+    public static ContentModifier binary(final Path toModify)
         throws IOException
     {
+        final Path tempFile = Files.createTempFile(toModify.getParent(),
+            "replace", "tmp");
+
+        return new BinaryContentModifier(toModify, tempFile);
+    }
+
+    public static ContentModifier text(final Path toModify,
+        final Charset charset)
+        throws IOException
+    {
+        final Path tempFile = Files.createTempFile(toModify.getParent(),
+            "replace", "tmp");
+
+        return new TextContentModifier(toModify, tempFile, charset);
+    }
+
+    protected ContentModifier(final Path toModify, final Path tempfile)
+    {
         this.toModify = toModify;
-        // Guaranteed to exist; we know that toModify is a regular file here
-        tempfile = Files.createTempFile(toModify.getParent(), "replace", "tmp");
+        this.tempfile = tempfile;
     }
 
     public InputStream getInputStream()

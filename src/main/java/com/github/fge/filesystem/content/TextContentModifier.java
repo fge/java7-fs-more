@@ -16,10 +16,11 @@ public final class TextContentModifier
     private volatile ContentBufferedReader wrappedReader;
     private volatile ContentBufferedWriter wrappedWriter;
 
-    public TextContentModifier(final Path toModify, final Charset charset)
+    public TextContentModifier(final Path toModify, final Path tempfile,
+        final Charset charset)
         throws IOException
     {
-        super(toModify);
+        super(toModify, tempfile);
         reader = Files.newBufferedReader(toModify, charset);
         writer = Files.newBufferedWriter(tempfile, charset);
     }
