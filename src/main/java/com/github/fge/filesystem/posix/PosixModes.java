@@ -12,7 +12,7 @@ import java.util.Set;
 public final class PosixModes
 {
     // TODO: hardcoded; but POSIX permissions will not change anytime soon
-    private static final PosixFilePermission[] PERMISSIONS
+    static final PosixFilePermission[] PERMISSIONS
         = PosixFilePermission.values();
 
     private static final int PERMISSIONS_LENGTH = PERMISSIONS.length;
