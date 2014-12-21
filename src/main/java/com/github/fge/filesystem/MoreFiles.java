@@ -1,6 +1,5 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.deletion.DeletionMode;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 import com.github.fge.filesystem.posix.PosixModes;
 
@@ -32,13 +31,13 @@ public final class MoreFiles
     }
 
     public static void deleteRecursive(final Path victim,
-        final DeletionMode option)
+        final RecursionMode option)
         throws IOException
     {
         Objects.requireNonNull(victim);
         Objects.requireNonNull(option);
 
-        if (option == DeletionMode.KEEP_GOING)
+        if (option == RecursionMode.KEEP_GOING)
             throw new UnsupportedOperationException("TODO!");
 
         Files.walkFileTree(victim, new FailFastDeletionVisitor(victim));
