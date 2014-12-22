@@ -4,13 +4,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
-/**
- * PermissionSets
- * It will only have package protected methods. 
- */
 @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
 @ParametersAreNonnullByDefault
-public class PermissionsSet
+public final class PermissionsSet
 {
     private final Set<PosixFilePermission> toAdd;
     private final Set<PosixFilePermission> toRemove;
