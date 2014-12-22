@@ -2,14 +2,20 @@ package com.github.fge.filesystem.posix;
 
 
 import com.github.fge.filesystem.exceptions.InvalidModeInstructionException;
-import com.github.fge.filesystem.helpers.CustomAssertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ModeParserTest
@@ -44,13 +50,10 @@ public final class ModeParserTest
         try {
             ModeParser.parseOne(instruction, toAdd, toRemove);
             shouldHaveThrown(InvalidModeInstructionException.class);
-            shouldHaveThrown(UnsupportedOperationException.class);
         } catch (InvalidModeInstructionException e) {
-            assertThat(e).isExactlyInstanceOf(
-                InvalidModeInstructionException.class).hasMessage(instruction);
-        }catch (UnsupportedOperationException e) {
-            assertThat(e).isExactlyInstanceOf(
-                    UnsupportedOperationException.class).hasMessage(instruction);
+            assertThat(e)
+                .isExactlyInstanceOf(InvalidModeInstructionException.class)
+                .hasMessage(instruction);
         }
     }
 
@@ -60,16 +63,17 @@ public final class ModeParserTest
         String instruction = "u-X";
         
         final Set<PosixFilePermission> toAdd
-                = EnumSet.noneOf(PosixFilePermission.class);
+            = EnumSet.noneOf(PosixFilePermission.class);
         final Set<PosixFilePermission> toRemove
-                = EnumSet.noneOf(PosixFilePermission.class);
+            = EnumSet.noneOf(PosixFilePermission.class);
 
         try {
             ModeParser.parseOne(instruction, toAdd, toRemove);
             shouldHaveThrown(UnsupportedOperationException.class);
         } catch (UnsupportedOperationException e) {
-            assertThat(e).isExactlyInstanceOf(
-                    UnsupportedOperationException.class).hasMessage(instruction);
+            assertThat(e)
+                .isExactlyInstanceOf(UnsupportedOperationException.class)
+                .hasMessage(instruction);
         }
     }
 
@@ -77,22 +81,35 @@ public final class ModeParserTest
     public Iterator<Object[]> validModeInstructions()
     {
         final List<Object[]> list = new ArrayList<>();
-        
-        list.add(new Object[]{"ug+r", EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.GROUP_READ), NO_PERMISSIONS});
-        list.add(new Object[]{"ug-r", NO_PERMISSIONS, EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.GROUP_READ)});
-        list.add(new Object[]{"o-x", NO_PERMISSIONS, EnumSet.of(PosixFilePermission.OTHERS_EXECUTE)});
-        list.add(new Object[]{"uog-rxw", NO_PERMISSIONS, EnumSet.of(
-                PosixFilePermission.OWNER_READ,PosixFilePermission.OWNER_EXECUTE,PosixFilePermission.OWNER_WRITE
-                ,PosixFilePermission.OTHERS_READ,PosixFilePermission.OTHERS_EXECUTE,PosixFilePermission.OTHERS_WRITE
-                ,PosixFilePermission.GROUP_READ,PosixFilePermission.GROUP_EXECUTE,PosixFilePermission.GROUP_WRITE)});
+
+        list.add(new Object[] {
+            "ug+r",
+            EnumSet.of(OWNER_READ, GROUP_READ),
+            NO_PERMISSIONS
+        });
+        list.add(new Object[] {
+            "ug-r",
+            NO_PERMISSIONS,
+            EnumSet.of(OWNER_READ, GROUP_READ)
+        });
+        list.add(new Object[] {
+            "o-x",
+            NO_PERMISSIONS,
+            EnumSet.of(OTHERS_EXECUTE)
+        });
+        list.add(new Object[] {
+            "uog-rxw",
+            NO_PERMISSIONS,
+            EnumSet.allOf(PosixFilePermission.class)
+        });
 
         return list.iterator();
     }
 
     @Test(dataProvider = "validModeInstructions")
     public void validModeInstructionAddsInstructionsInAppropriateSets(
-            final String instruction, Set<PosixFilePermission> add,
-            Set<PosixFilePermission> remove)
+        final String instruction, final Set<PosixFilePermission> add,
+        final Set<PosixFilePermission> remove)
     {
 
         final Set<PosixFilePermission> toAdd
@@ -104,6 +121,5 @@ public final class ModeParserTest
 
         assertThat(toAdd).isEqualTo(add);
         assertThat(toRemove).isEqualTo(remove);
-
     }
 }

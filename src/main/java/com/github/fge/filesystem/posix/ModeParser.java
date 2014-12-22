@@ -54,32 +54,33 @@ public final class ModeParser
     {
         final int whoLength = who.length();
         final int whatLength = what.length();
-        for(int i=0;i<whoLength;i++) {
-            int whoOrdinal = 0;
+
+        int whoOrdinal, whatOrdinal;
+
+        for (int i = 0; i < whoLength; i++) {
+            whoOrdinal = 0;
             switch(who.charAt(i)) {
-                case 'u':
-                    whoOrdinal = (0*3); // just for the sake of keeping same standard for all
-                    break;
-                case 'g':
-                    whoOrdinal = (1*3);
-                    break;
                 case 'o':
-                    whoOrdinal = (2*3);
+                    whoOrdinal++;
+                    /* fall through */
+                case 'g':
+                    whoOrdinal++;
+                    /* fall through */
+                case 'u':
                     break;
                 default:
                     throw new InvalidModeInstructionException(instruction);
             }
-            for(int j=0;j<whatLength;j++) {
-                int whatOrdinal=0;
+            for (int j = 0; j < whatLength; j++) {
+                whatOrdinal = 3 * whoOrdinal;
                 switch(what.charAt(j)) {
-                    case 'r':
-                        whatOrdinal = whoOrdinal+0;
-                        break;
-                    case 'w':
-                        whatOrdinal = whoOrdinal+1;
-                        break;
                     case 'x':
-                        whatOrdinal = whoOrdinal+2;
+                        whatOrdinal++;
+                        /* fall through */
+                    case 'w':
+                        whatOrdinal++;
+                        /* fall through */
+                    case 'r':
                         break;
                     case 'X':
                         throw new UnsupportedOperationException(instruction);
