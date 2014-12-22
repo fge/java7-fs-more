@@ -4,7 +4,7 @@ This project is licensed under both LGPLv3 and ASL 2.0. See file LICENSE for mor
 
 ## What this is
 
-This is a collection of utilities for manipulating all things JSR 202, that is the new java.nio.file
+This is a collection of utilities for manipulating all things JSR 203, that is the new java.nio.file
 API. It requires Java 7+.
 
 The javadoc is [available online](https://fge.github.io/java7-fs-more). No version is released yet.
