@@ -1,5 +1,15 @@
 package com.github.fge.filesystem.exceptions;
 
+import com.github.fge.filesystem.posix.PosixModes;
+
+import java.nio.file.attribute.PosixFilePermission;
+
+/**
+ * Exception thrown when an {@code int} cannot be translated to a set of {@link
+ * PosixFilePermission}s
+ *
+ * @see PosixModes#intModeToPosix(int)
+ */
 public final class InvalidIntModeException
     extends IllegalArgumentException
 {

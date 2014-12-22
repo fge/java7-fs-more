@@ -1,17 +1,31 @@
 package com.github.fge.filesystem.copy;
 
+import com.github.fge.filesystem.MoreFiles;
 import com.github.fge.filesystem.MorePaths;
+import com.github.fge.filesystem.RecursionMode;
 import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Objects;
 
+/**
+ * Recursive copy {@link FileVisitor} for {@link RecursionMode#KEEP_GOING
+ * keep going} operation
+ *
+ * <p>This visitor will collect all {@link IOException}s it encounters and add
+ * them (as a {@link Throwable#addSuppressed(Throwable) suppressed} exception)
+ * to the {@link RecursiveCopyException} argument.</p>
+ *
+ * @see MoreFiles#copyRecursive(Path, Path, RecursionMode, CopyOption...)
+ */
 @ParametersAreNonnullByDefault
 public final class KeepGoingCopyVisitor
     implements FileVisitor<Path>
@@ -23,12 +37,19 @@ public final class KeepGoingCopyVisitor
     private Path currentSrc;
     private Path currentDst;
 
+    /**
+     * Constructor
+     *
+     * @param src the source to copy recursively
+     * @param dst the destination of the copy
+     * @param exception the exception to collect other exceptions
+     */
     public KeepGoingCopyVisitor(final Path src, final Path dst,
         final RecursiveCopyException exception)
     {
-        this.exception = exception;
-        this.src = src;
-        this.dst = dst;
+        this.exception = Objects.requireNonNull(exception);
+        this.src = Objects.requireNonNull(src);
+        this.dst = Objects.requireNonNull(dst);
     }
 
     @Override

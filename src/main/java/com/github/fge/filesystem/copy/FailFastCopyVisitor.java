@@ -1,14 +1,29 @@
 package com.github.fge.filesystem.copy;
 
+import com.github.fge.filesystem.MoreFiles;
 import com.github.fge.filesystem.MorePaths;
+import com.github.fge.filesystem.RecursionMode;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Objects;
 
+/**
+ * Recursive copy {@link FileVisitor} for {@link RecursionMode#FAIL_FAST fail
+ * fast} operation
+ *
+ * <p>This visitor will fail for the first directory it fails to create or the
+ * first file it fails to copy.</p>
+ *
+ * @see MoreFiles#copyRecursive(Path, Path, RecursionMode, CopyOption...)
+ */
+@ParametersAreNonnullByDefault
 public final class FailFastCopyVisitor
     implements FileVisitor<Path>
 {
@@ -18,10 +33,16 @@ public final class FailFastCopyVisitor
     private Path currentSrc;
     private Path currentDst;
 
+    /**
+     * Constructor
+     *
+     * @param src the source path
+     * @param dst the destination path
+     */
     public FailFastCopyVisitor(final Path src, final Path dst)
     {
-        this.src = src;
-        this.dst = dst;
+        this.src = Objects.requireNonNull(src);
+        this.dst = Objects.requireNonNull(dst);
     }
 
     @Override

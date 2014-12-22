@@ -1,11 +1,22 @@
 package com.github.fge.filesystem.exceptions;
 
-import java.io.IOException;
+import com.github.fge.filesystem.MoreFiles;
+import com.github.fge.filesystem.RecursionMode;
+import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
 
-public class RecursiveDeletionException
+import java.io.IOException;
+import java.nio.file.Path;
+
+/**
+ * Exception thrown when a recursice deletion in {@link RecursionMode#KEEP_GOING
+ * keep going} mode fails to complete without errors
+ *
+ * @see KeepGoingDeletionVisitor
+ * @see MoreFiles#deleteRecursive(Path, RecursionMode)
+ */
+public final class RecursiveDeletionException
     extends IOException
 {
-
     public RecursiveDeletionException()
     {
     }
@@ -25,5 +36,4 @@ public class RecursiveDeletionException
     {
         super(cause);
     }
-
 }
