@@ -197,8 +197,8 @@ public final class MoreFiles
      * <p>This method will take an integer as an argument, just like the Unix
      * {@code chmod} command, with one difference: you <em>must</em> prefix the
      * integer mode with {@code 0} so that Java read it as an octal number; that
-     * is, use {@code setMode(0644, myPath)} and <em>not</em> {@code
-     * setMode(644, myPath)}.</p>
+     * is, use {@code setMode(myPath, 0644)} and <em>not</em> {@code
+     * setMode(myPath, 644)}.</p>
      *
      * @param path the path to change
      * @param mode the permissions to set, as an integer
