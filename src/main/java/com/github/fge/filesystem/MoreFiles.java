@@ -271,7 +271,7 @@ public final class MoreFiles
     {
         final BasicFileAttributeView view = Files.getFileAttributeView(path,
             BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-        view.setTimes(fileTime, fileTime, fileTime);
+        view.setTimes(fileTime, fileTime, null);
         return path;
     }
 }
