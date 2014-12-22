@@ -116,4 +116,11 @@ public class PathAssert
 
         return this;
     }
+
+    @Override
+    public final PathAssert isNotNull()
+    {
+        super.isNotNull();
+        return this;
+    }
 }

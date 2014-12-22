@@ -75,14 +75,14 @@ public final class MoreFilesTest
 
         final CustomSoftAssertions soft = CustomSoftAssertions.create();
 
-        Path path = target;
-        soft.assertThat(path).exists().isDirectory()
+        Path tmp = target;
+        soft.assertThat(tmp).exists().isDirectory()
             .hasPosixPermissions(permString);
-        path = path.getParent();
-        soft.assertThat(path).exists().isDirectory()
+        tmp = tmp.getParent();
+        soft.assertThat(tmp).exists().isDirectory()
             .hasPosixPermissions(permString);
-        path = path.getParent();
-        soft.assertThat(path).exists().isDirectory()
+        tmp = tmp.getParent();
+        soft.assertThat(tmp).exists().isDirectory()
             .hasPosixPermissions(permString);
 
         soft.assertAll();
@@ -94,17 +94,20 @@ public final class MoreFilesTest
     {
         final Path target = fs.getPath("/dir1/dir2/dir3");
 
-        MoreFiles.createDirectories(target, "rwx------");
+        final Path actual
+            = MoreFiles.createDirectories(target, "rwx------");
 
-        assertThat(target).exists().isDirectory()
-            .hasPosixPermissions("rwxr-xr-x");
+        assertThat(actual).isNotNull().exists().isDirectory()
+            .hasPosixPermissions("rwxr-xr-x").isEqualTo(target);
     }
-    
-    public void testTouch() throws IOException
+
+    @Test
+    public void touchCreatesNonExistingEntryAsARegularFile() throws IOException
     {
         final Path filePath = fs.getPath("text.txt");
         final Path created  = MoreFiles.touch(filePath);
-        assertThat(created).exists().isNotNull().isEqualTo(filePath);
+
+        assertThat(created).isNotNull().isRegularFile().isEqualTo(filePath);
     }
 
 
@@ -113,8 +116,8 @@ public final class MoreFilesTest
         throws IOException
     {
         final Path modified = MoreFiles.setTimes(path, fileTime);
-        assertThat(modified).exists()
-            .hasAccessTime(fileTime).hasModificationTime(fileTime);
+        assertThat(modified).isNotNull().exists().hasAccessTime(fileTime)
+            .hasModificationTime(fileTime).isEqualTo(path);
     }
 
     @AfterClass
