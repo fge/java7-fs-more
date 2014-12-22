@@ -4,6 +4,7 @@ import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -11,7 +12,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
 
@@ -119,6 +125,50 @@ public final class MoreFilesTest
         assertThat(modified).isNotNull().exists().hasAccessTime(fileTime)
             .hasModificationTime(fileTime).isEqualTo(path);
     }
+
+    @DataProvider
+    public Iterator<Object[]> changeModeData()
+    {
+        final List<Object[]> list = new ArrayList<>();
+
+        list.add(new Object[] { "rw-r--r--", "o-r", "rw-r-----" });
+        list.add(new Object[] { "rwxr-xr-x", "go-x,o-r", "rwxr-----" });
+        list.add(new Object[] { "rw-r--r--", "g+w,o-r", "rw-rw----" });
+
+        return list.iterator();
+    }
+
+    @Test(dataProvider = "changeModeData")
+    public void changeModeAltersTargetPermissions(final String before,
+        final String instructions, final String after)
+        throws IOException
+    {
+        final Set<PosixFilePermission> initial
+            = PosixFilePermissions.fromString(before);
+        final Set<PosixFilePermission> expected
+            = PosixFilePermissions.fromString(after);
+
+        final Path target = fs.getPath("/target");
+        Files.createFile(target);
+        Files.setPosixFilePermissions(target, initial);
+
+        final CustomSoftAssertions soft = CustomSoftAssertions.create();
+
+        final Path ret = MoreFiles.changeMode(target, instructions);
+
+        soft.assertThat(ret).isNotNull();
+
+        final Set<PosixFilePermission> actual
+            = Files.getPosixFilePermissions(ret);
+
+        soft.assertThat(actual).as("permissions are correctly modified")
+            .isEqualTo(expected);
+
+        Files.delete(target);
+
+        soft.assertAll();
+    }
+
 
     @AfterClass
     public void closeFs()

@@ -4,9 +4,27 @@ import com.github.fge.filesystem.exceptions.InvalidModeInstructionException;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * A parser for chmod-like posix mode change instructions
+ *
+ * <p>Such instructions are, for instance, {@code "u+r,go-w"}.</p>
+ *
+ * <p>What is currently supported:</p>
+ *
+ * <ul>
+ *     <li>who: any combination of {@code u}, {@code g} and {@code o}; an empty
+ *     string is equivalent to {@code ugo}; {@code a} is NOT supported;</li>
+ *     <li>operation type: {@code +} and {@code -}; {@code =} is NOT supported;
+ *     </li>
+ *     <li>what: any combination of {@code r}, {@code w} and {@code x}; {@code
+ *     X} is NOT supported.</li>
+ * </ul>
+ */
 @ParametersAreNonnullByDefault
 public final class ModeParser
 {
@@ -17,7 +35,31 @@ public final class ModeParser
         throw new Error("nice try!");
     }
 
-    public static void parse(final String instructions,
+    /**
+     * Build a permission change object from an instruction string
+     *
+     * @param instructions the instructions
+     * @return a permission change object
+     * @throws InvalidModeInstructionException instruction string is invalid
+     * @throws UnsupportedOperationException an unsupported instruction was
+     * encountered while parsin
+     */
+    public static PermissionsSet buildPermissionsSet(final String instructions)
+    {
+        Objects.requireNonNull(instructions);
+
+        final Set<PosixFilePermission> toAdd
+            = EnumSet.noneOf(PosixFilePermission.class);
+        final Set<PosixFilePermission> toRemove
+            = EnumSet.noneOf(PosixFilePermission.class);
+
+        parse(instructions, toAdd, toRemove);
+
+        return new PermissionsSet(toAdd, toRemove);
+    }
+
+    // Visible for testing
+    static void parse(final String instructions,
         final Set<PosixFilePermission> toAdd,
         final Set<PosixFilePermission> toRemove)
     {

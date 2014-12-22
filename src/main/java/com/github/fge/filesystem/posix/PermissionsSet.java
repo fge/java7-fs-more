@@ -2,6 +2,7 @@ package com.github.fge.filesystem.posix;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 import java.util.Set;
 
 @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
@@ -16,5 +17,14 @@ public final class PermissionsSet
     {
         this.toAdd = toAdd;
         this.toRemove = toRemove;
+    }
+
+    public Set<PosixFilePermission> modify(final Set<PosixFilePermission> set)
+    {
+        final Set<PosixFilePermission> ret = EnumSet.copyOf(set);
+
+        ret.removeAll(toRemove);
+        ret.addAll(toAdd);
+        return ret;
     }
 }

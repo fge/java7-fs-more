@@ -7,6 +7,8 @@ import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
 import com.github.fge.filesystem.exceptions.InvalidIntModeException;
 import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
+import com.github.fge.filesystem.posix.ModeParser;
+import com.github.fge.filesystem.posix.PermissionsSet;
 import com.github.fge.filesystem.posix.PosixModes;
 
 import javax.annotation.Nonnull;
@@ -522,6 +524,41 @@ public final class MoreFiles
 
         final FileTime time = FileTime.fromMillis(System.currentTimeMillis());
         return setTimes(path, time);
+    }
+
+    /**
+     * Change the posix permissions of a file/directory using a chmod-like
+     * modification string
+     *
+     * <p>The modification string is the same as {@code chmod}. For instance:
+     * </p>
+     *
+     * <pre>
+     *     MoreFiles.changeMode(path, "o-rwx,g+r,g-w");
+     * </pre>
+     *
+     * <p>See {@link ModeParser#buildPermissionsSet(String)} for the list of
+     * supported constructs.</p>
+     *
+     * @param target the target to alter
+     * @param instructions the modification instructions
+     * @return the target path
+     * @throws UnsupportedOperationException the target's filesystem does not
+     * support getting/setting posix permissions
+     * @throws IOException failed to change the permissions
+     */
+    @Nonnull
+    public static Path changeMode(final Path target, final String instructions)
+        throws IOException
+    {
+        final PermissionsSet set = ModeParser.buildPermissionsSet(instructions);
+
+        final Set<PosixFilePermission> before
+            = Files.getPosixFilePermissions(target);
+
+        final Set<PosixFilePermission> after = set.modify(before);
+
+        return Files.setPosixFilePermissions(target, after);
     }
 
     // Visible for testing
