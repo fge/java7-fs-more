@@ -60,12 +60,25 @@ public final class ModeParserTest
     @Test
     public void unsupportedModeInstructionThrowsAppropriateException()
     {
-        String instruction = "u-X";
-        
         final Set<PosixFilePermission> toAdd
             = EnumSet.noneOf(PosixFilePermission.class);
         final Set<PosixFilePermission> toRemove
             = EnumSet.noneOf(PosixFilePermission.class);
+
+        String instruction;
+
+        instruction = "u-X";
+
+        try {
+            ModeParser.parseOne(instruction, toAdd, toRemove);
+            shouldHaveThrown(UnsupportedOperationException.class);
+        } catch (UnsupportedOperationException e) {
+            assertThat(e)
+                .isExactlyInstanceOf(UnsupportedOperationException.class)
+                .hasMessage(instruction);
+        }
+
+        instruction = "a+r";
 
         try {
             ModeParser.parseOne(instruction, toAdd, toRemove);

@@ -68,6 +68,8 @@ public final class ModeParser
                     /* fall through */
                 case 'u':
                     break;
+                case 'a':
+                    throw new UnsupportedOperationException(instruction);
                 default:
                     throw new InvalidModeInstructionException(instruction);
             }
