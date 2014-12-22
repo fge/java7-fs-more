@@ -53,6 +53,4 @@ public final class PosixModes
 
         return set;
     }
-
-
 }

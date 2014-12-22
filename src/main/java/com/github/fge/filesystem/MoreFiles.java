@@ -4,6 +4,7 @@ import com.github.fge.filesystem.copy.FailFastCopyVisitor;
 import com.github.fge.filesystem.copy.KeepGoingCopyVisitor;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
+import com.github.fge.filesystem.exceptions.InvalidIntModeException;
 import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
 import com.github.fge.filesystem.posix.PosixModes;
@@ -12,13 +13,16 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.CopyOption;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -28,7 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Utility classes in complement of the JDK's {@link Files}
+ * Utility class to complement JDK's {@link Files}
  *
  * <p>Unless otherwise noted, all methods in this class do not accept null
  * arguments and will throw a {@link NullPointerException} if a null argument
@@ -42,6 +46,52 @@ public final class MoreFiles
         throw new Error("nice try!");
     }
 
+    /**
+     * Recursively copy a source to a destination
+     *
+     * <p>This command will work even across filesystems.</p>
+     *
+     * <p>Note that this command only supports directories and files. If the
+     * source is a symbolic link, though, it will be followed (see {@link
+     * Path#toRealPath(LinkOption...)}). Any symbolic link encountered during
+     * a copy will trigger an {@link UnsupportedOperationException}.</p>
+     *
+     * <p>There are two recursion modes: {@link RecursionMode#FAIL_FAST fail
+     * fast} and {@link RecursionMode#KEEP_GOING keep going}. In the first mode,
+     * copy will stop at the first error encountered and this error will be
+     * thrown. In the second mode, the copy will continue even if one or more
+     * errors are encountered and this method will throw a {@link
+     * RecursiveCopyException}. The list of exceptions which occured during the
+     * copy operations are available via {@link Throwable#getSuppressed()}.</p>
+     *
+     * <p>The only supported {@link CopyOption copy option} is {@link
+     * StandardCopyOption#REPLACE_EXISTING}.</p>
+     *
+     * @param source the source to copy (either a file or a directory)
+     * @param destination the destination
+     * @param mode the recursion mode (see description)
+     * @param options the set of copy options
+     * @throws NoSuchFileException source does not exist; or a parent of the
+     * destination does not exist when attempting to create the destination
+     * @throws UnsupportedOperationException unsupported copy option; or a
+     * symbolic link was encountered during copy
+     * @throws FileAlreadyExistsException {@link
+     * StandardCopyOption#REPLACE_EXISTING} was not specified, and the
+     * destination path already exists
+     * @throws DirectoryNotEmptyException {@link
+     * StandardCopyOption#REPLACE_EXISTING} was specified but the destination
+     * path is a non empty directory
+     * @throws RecursiveCopyException {@link RecursionMode#KEEP_GOING} was
+     * specified, however one or more errors were encountered during the copy
+     * operation
+     * @throws IOException other I/O errors (access denied, etc)
+     *
+     * @see MorePaths#resolve(Path, Path)
+     * @see Files#walkFileTree(Path, FileVisitor)
+     * @see Files#copy(Path, Path, CopyOption...)
+     * @see FailFastCopyVisitor
+     * @see KeepGoingCopyVisitor
+     */
     public static void copyRecursive(final Path source, final Path destination,
         final RecursionMode mode, final CopyOption... options)
         throws IOException
@@ -88,16 +138,42 @@ public final class MoreFiles
     }
 
 
+    /**
+     * Delete a path recursively
+     *
+     * <p>Note that if a symbolic link is encountered, the symbolic link itself
+     * will be deleted. The target (if valid) is left untouched.</p>
+     *
+     * <p>There are two modes of operation: {@link RecursionMode#FAIL_FAST fail
+     * fast} and {@link RecursionMode#KEEP_GOING keep going}. In the first mode,
+     * deletion will stop at the first error encountered and throw the
+     * exception. In the second mode, deletion will continue, and this method
+     * will throw a {@link RecursiveDeletionException}. The list of exceptions
+     * encountered during the deletion operation is available using {@link
+     * Throwable#getSuppressed()}.</p>
+     *
+     * @param victim the victim
+     * @param mode the recursion mode (see description)
+     * @throws NoSuchFileException victim does not exist (lucky you)
+     * @throws RecursiveDeletionException {@link RecursionMode#KEEP_GOING} was
+     * specified, and one or more errors were encountered during the deletion
+     * operation (see description)
+     * @throws IOException other I/O errors
+     *
+     * @see FailFastDeletionVisitor
+     * @see KeepGoingDeletionVisitor
+     * @see Files#delete(Path)
+     */
     public static void deleteRecursive(final Path victim,
-        final RecursionMode option)
+        final RecursionMode mode)
         throws IOException
     {
         Objects.requireNonNull(victim);
-        Objects.requireNonNull(option);
+        Objects.requireNonNull(mode);
 
         final FileVisitor<Path> visitor;
 
-        switch (option) {
+        switch (mode) {
             case KEEP_GOING:
                 final RecursiveDeletionException exception
                     = new RecursiveDeletionException();
@@ -115,8 +191,30 @@ public final class MoreFiles
         }
     }
 
+    /**
+     * Change POSIX file permissions of a path
+     *
+     * <p>This method will take an integer as an argument, just like the Unix
+     * {@code chmod} command, with one difference: you <em>must</em> prefix the
+     * integer mode with {@code 0} so that Java read it as an octal number; that
+     * is, use {@code setMode(0644, myPath)} and <em>not</em> {@code
+     * setMode(644, myPath)}.</p>
+     *
+     * @param path the path to change
+     * @param mode the permissions to set, as an integer
+     * @return the path
+     * @throws InvalidIntModeException integer mode is not valid
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws IOException failed to set the modes
+     *
+     * @see Files#setPosixFilePermissions(Path, Set)
+     * @see PosixModes#intModeToPosix(int)
+     *
+     */
     @Nonnull
-    public static Path setMode(final int mode, final Path path)
+    public static Path setMode(final Path path, final int mode)
         throws IOException
     {
         Objects.requireNonNull(path);
@@ -125,33 +223,104 @@ public final class MoreFiles
         return Files.setPosixFilePermissions(path, perms);
     }
 
+    /**
+     * Change POSIX file permissions of a path
+     *
+     * <p>This command accepts a string representing the absolute POSIX
+     * permissions to set; for instance, {@code setMode(thePath, "rw-r-----")}.
+     * </p>
+     *
+     * <p>Only classical modes are supported; you cannot set the suid bit nor
+     * sticky bit using this command. Attempting to do so will throw an {@link
+     * IllegalArgumentException}.</p>
+     *
+     * @param path the path to alter
+     * @param permissions the permissions to set, as a mode string
+     * @return the path
+     * @throws IllegalArgumentException invalid permission string
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws IOException failed to set the modes
+     *
+     * @see PosixFilePermissions#fromString(String)
+     * @see Files#setPosixFilePermissions(Path, Set)
+     */
     @Nonnull
-    public static Path setMode(final String modeString, final Path path)
+    public static Path setMode(final Path path, final String permissions)
         throws IOException
     {
-        Objects.requireNonNull(modeString);
+        Objects.requireNonNull(permissions);
         Objects.requireNonNull(path);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(modeString);
+            = PosixFilePermissions.fromString(permissions);
 
         return Files.setPosixFilePermissions(path, perms);
     }
 
+    /**
+     * Create a new file with a set of absolute POSIX permissions
+     *
+     * <p>{@link Files#createFile(Path, FileAttribute[])} can be used to set
+     * initial POSIX file permissions; however, those permissions are altered
+     * by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the file is
+     * first created, then the permissions are set.</p>
+     *
+     * @param path the file to create
+     * @param permissions the permissions to create the file with, as a mode
+     * string
+     * @return the created path
+     * @throws IllegalArgumentException invalid mode string specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws FileAlreadyExistsException the path already exists
+     * @throws IOException failed to create the file
+     *
+     * @see PosixFilePermissions#fromString(String)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
-    public static Path createFile(final Path path,
-        final String posixPermissions)
+    public static Path createFile(final Path path, final String permissions)
         throws IOException
     {
         Objects.requireNonNull(path);
-        Objects.requireNonNull(posixPermissions);
+        Objects.requireNonNull(permissions);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(posixPermissions);
+            = PosixFilePermissions.fromString(permissions);
 
         return doCreateFile(path, perms);
     }
 
+    /**
+     * Create a new file with a set of absolute POSIX permissions
+     *
+     * <p>{@link Files#createFile(Path, FileAttribute[])} can be used to set
+     * initial POSIX file permissions; however, those permissions are altered
+     * by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the file is
+     * first created, then the permissions are set.</p>
+     *
+     * @param path the path to create
+     * @param mode the permissions to create the file with, as an integer
+     * @return the path
+     * @throws InvalidIntModeException invalid integer mode specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws FileAlreadyExistsException the path already exists
+     * @throws IOException failed to create the file
+     *
+     * @see PosixModes#intModeToPosix(int)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
     public static Path createFile(final Path path, final int mode)
         throws IOException
@@ -163,20 +332,68 @@ public final class MoreFiles
         return doCreateFile(path, perms);
     }
 
+    /**
+     * Create a new directory with a set of absolute POSIX permissions
+     *
+     * <p>{@link Files#createDirectory(Path, FileAttribute[])}} can be used to
+     * set initial POSIX file permissions; however, those permissions are
+     * altered by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the directory is
+     * first created, then the permissions are set.</p>
+     *
+     * @param dir the directory to create
+     * @param permissions the permissions to create the directory with, as a
+     * mode string
+     * @return the created path
+     * @throws IllegalArgumentException invalid mode string specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws FileAlreadyExistsException the path already exists
+     * @throws IOException failed to create the directory
+     *
+     * @see PosixFilePermissions#fromString(String)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
-    public static Path createDirectory(final Path dir,
-        final String posixPermissions)
+    public static Path createDirectory(final Path dir, final String permissions)
         throws IOException
     {
         Objects.requireNonNull(dir);
-        Objects.requireNonNull(posixPermissions);
+        Objects.requireNonNull(permissions);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(posixPermissions);
+            = PosixFilePermissions.fromString(permissions);
 
         return doCreateDirectory(dir, perms);
     }
 
+    /**
+     * Create a new directory with a set of absolute POSIX permissions
+     *
+     * <p>{@link Files#createDirectory(Path, FileAttribute[])} can be used to
+     * set initial POSIX file permissions; however, those permissions are
+     * altered by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the directory is
+     * first created, then the permissions are set.</p>
+     *
+     * @param dir the directory to create
+     * @param mode the permissions to create the directory with, as an integer
+     * @return the created path
+     * @throws InvalidIntModeException invalid integer mode specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws FileAlreadyExistsException the path already exists
+     * @throws IOException failed to create the directory
+     *
+     * @see PosixModes#intModeToPosix(int)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
     public static Path createDirectory(final Path dir, final int mode)
         throws IOException
@@ -188,23 +405,79 @@ public final class MoreFiles
         return doCreateDirectory(dir, perms);
     }
 
+    /**
+     * Create a new directory and all its missing parents with a set of absolute
+     * POSIX permissions
+     *
+     * <p>{@link Files#createDirectories(Path, FileAttribute[])}} can be used to
+     * set initial POSIX file permissions; however, those permissions are
+     * altered by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the
+     * directories are first created, then the permissions are set.</p>
+     *
+     * <p>The permissions of already existing directories are
+     * <strong>not</strong> altered.</p>
+     *
+     * @param dir the directory (and its missing parents) to create
+     * @param permissions the permissions to create the missing directories4
+     * with, as a mode string
+     * @return the created path
+     * @throws IllegalArgumentException invalid mode string specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws IOException failed to create the directory
+     *
+     * @see PosixFilePermissions#fromString(String)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
     public static Path createDirectories(final Path dir,
-        final String posixPermissions)
+        final String permissions)
         throws IOException
     {
         Objects.requireNonNull(dir);
-        Objects.requireNonNull(posixPermissions);
+        Objects.requireNonNull(permissions);
 
         final Path realDir = dir.toAbsolutePath();
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(posixPermissions);
+            = PosixFilePermissions.fromString(permissions);
 
         doCreateDirectories(realDir, perms);
 
         return dir;
     }
 
+    /**
+     * Create a new directory and all its missing parents with a set of absolute
+     * POSIX permissions
+     *
+     * <p>{@link Files#createDirectories(Path, FileAttribute[])}} can be used to
+     * set initial POSIX file permissions; however, those permissions are
+     * altered by the process' umask.</p>
+     *
+     * <p>This method is not "umask sensitive"; however, this means that unlike
+     * the command from {@link Files}, it is not atomic either: the
+     * directories are first created, then the permissions are set.</p>
+     *
+     * <p>The permissions of already existing directories are
+     * <strong>not</strong> altered.</p>
+     *
+     * @param dir the directory (and its missing parents) to create
+     * @param mode the permissions to create the missing directories
+     * with, as an integer
+     * @return the created path
+     * @throws InvalidIntModeException invalid integer mode specified
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with this path does not support POSIX file
+     * permissions
+     * @throws IOException failed to create the directory
+     *
+     * @see PosixModes#intModeToPosix(int)
+     * @see PosixFilePermissions#asFileAttribute(Set)
+     */
     @Nonnull
     public static Path createDirectories(final Path dir, final int mode)
         throws IOException
@@ -217,6 +490,49 @@ public final class MoreFiles
         doCreateDirectories(realDir, perms);
 
         return dir;
+    }
+
+    /**
+     * Update the last access and modification time of a file, or create a file
+     *
+     * <p>This command works similarly to the Unix {@code touch} command. If the
+     * given path does not exist, it is created (as an empty {@link
+     * Files#isRegularFile(Path, LinkOption...) regular file}); otherwise, its
+     * last access and modification time are set.</p>
+     *
+     * @param path the path to alter/create
+     * @return the altered/created path
+     * @throws UnsupportedOperationException the {@link Path#getFileSystem()
+     * filesystem} associated with the path, or the associated filesystem object
+     * associated with the path, does not support setting file times
+     * @throws IOException cannot update the times and/or create the file; other
+     * reasons
+     *
+     * @see System#currentTimeMillis()
+     * @see FileTime#fromMillis(long)
+     * @see Files#createFile(Path, FileAttribute[])
+     * @see BasicFileAttributeView#setTimes(FileTime, FileTime, FileTime)
+     */
+    @Nonnull
+    public static Path touch(final Path path)
+        throws IOException
+    {
+        if (!Files.exists(Objects.requireNonNull(path)))
+            return Files.createFile(path);
+
+        final FileTime time = FileTime.fromMillis(System.currentTimeMillis());
+        return setTimes(path, time);
+    }
+
+    // Visible for testing
+    @Nonnull
+    static Path setTimes(final Path path, final FileTime fileTime)
+        throws IOException
+    {
+        final BasicFileAttributeView view = Files.getFileAttributeView(path,
+            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+        view.setTimes(fileTime, fileTime, null);
+        return path;
     }
 
     private static Path doCreateFile(final Path path,
@@ -252,26 +568,5 @@ public final class MoreFiles
 
         for (final Path path: created)
             Files.setPosixFilePermissions(path, perms);
-    }
-    
-    @Nonnull
-    public static Path touch(final Path path)
-        throws IOException
-    {
-        if (!Files.exists(path))
-            return Files.createFile(path);
-
-        final FileTime time = FileTime.fromMillis(System.currentTimeMillis());
-        return setTimes(path, time);
-    }
-
-    @Nonnull
-    static Path setTimes(final Path path, final FileTime fileTime)
-        throws IOException
-    {
-        final BasicFileAttributeView view = Files.getFileAttributeView(path,
-            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-        view.setTimes(fileTime, fileTime, null);
-        return path;
     }
 }
