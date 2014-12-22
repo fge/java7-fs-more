@@ -1,17 +1,23 @@
 package com.github.fge.filesystem;
 
+import com.github.fge.filesystem.copy.FailFastCopyVisitor;
+import com.github.fge.filesystem.copy.KeepGoingCopyVisitor;
 import com.github.fge.filesystem.deletion.FailFastDeletionVisitor;
 import com.github.fge.filesystem.deletion.KeepGoingDeletionVisitor;
+import com.github.fge.filesystem.exceptions.RecursiveCopyException;
 import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
 import com.github.fge.filesystem.posix.PosixModes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
@@ -35,6 +41,52 @@ public final class MoreFiles
     {
         throw new Error("nice try!");
     }
+
+    public static void copyRecursive(final Path source, final Path destination,
+        final RecursionMode mode, final CopyOption... options)
+        throws IOException
+    {
+        Objects.requireNonNull(mode);
+
+        boolean replace = false;
+
+        for (final CopyOption option: options) {
+            Objects.requireNonNull(option);
+            if (option == StandardCopyOption.REPLACE_EXISTING)
+                replace = true;
+        }
+
+        // We only support one option; array must be empty or have one element
+        if (options.length > 1)
+            throw new UnsupportedOperationException();
+
+        // This will throw NoSuchFileException for us if source does not exist
+        final Path src = Objects.requireNonNull(source).toRealPath();
+        final Path dst = Objects.requireNonNull(destination).toAbsolutePath();
+
+        if (Files.exists(dst, LinkOption.NOFOLLOW_LINKS) && !replace)
+            throw new FileAlreadyExistsException(destination.toString());
+
+        Files.deleteIfExists(dst);
+
+        if (mode == RecursionMode.FAIL_FAST) {
+            Files.walkFileTree(src, new FailFastCopyVisitor(src, dst));
+            return;
+        }
+
+        // Cannot happen in theory, but...
+        if (mode != RecursionMode.KEEP_GOING)
+            throw new IllegalStateException();
+
+        final RecursiveCopyException e = new RecursiveCopyException();
+        final FileVisitor<Path> visitor
+            = new KeepGoingCopyVisitor(src, dst, e);
+
+        Files.walkFileTree(src, visitor);
+        if (e.getSuppressed().length != 0)
+            throw e;
+    }
+
 
     public static void deleteRecursive(final Path victim,
         final RecursionMode option)
