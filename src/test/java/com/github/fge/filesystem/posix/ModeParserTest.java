@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ModeParserTest
@@ -135,4 +133,43 @@ public final class ModeParserTest
         assertThat(toAdd).isEqualTo(add);
         assertThat(toRemove).isEqualTo(remove);
     }
+
+
+    @DataProvider
+    public Iterator<Object[]> multipleInstructions()
+    {
+        final List<Object[]> list = new ArrayList<>();
+
+        list.add(new Object[] {
+                "ug+r,ou-x",
+                EnumSet.of(OWNER_READ, GROUP_READ),
+                EnumSet.of(OTHERS_EXECUTE, OWNER_EXECUTE)
+        });
+        list.add(new Object[] {
+                "ug-r,og+xr",
+                EnumSet.of(OTHERS_EXECUTE,OTHERS_READ,GROUP_EXECUTE,GROUP_READ),
+                EnumSet.of(OWNER_READ, GROUP_READ)
+        });
+
+        return list.iterator();
+    }
+
+    @Test(dataProvider = "multipleInstructions")
+    public void validModeMultipleInstructionAddsInstructionsInAppropriateSets(
+            final String instruction, final Set<PosixFilePermission> add,
+            final Set<PosixFilePermission> remove)
+    {
+
+        final Set<PosixFilePermission> toAdd
+                = EnumSet.noneOf(PosixFilePermission.class);
+        final Set<PosixFilePermission> toRemove
+                = EnumSet.noneOf(PosixFilePermission.class);
+
+        ModeParser.parse(instruction, toAdd, toRemove);
+
+        assertThat(toAdd).isEqualTo(add);
+        assertThat(toRemove).isEqualTo(remove);
+    }
+    
+    
 }

@@ -17,6 +17,17 @@ public final class ModeParser
         throw new Error("nice try!");
     }
 
+    static void parse(final String instruction,
+                         final Set<PosixFilePermission> toAdd,
+                         final Set<PosixFilePermission> toRemove)
+    {
+        String[] instructionSet = PATTERN.split(instruction);
+        for(String ins: instructionSet) {
+            parseOne(ins,toAdd,toRemove);
+        }
+        
+    }
+
     // Visible for testing
     static void parseOne(final String instruction,
         final Set<PosixFilePermission> toAdd,
@@ -48,6 +59,8 @@ public final class ModeParser
         
         modifySet(who, what, set, instruction);
     }
+    
+    
 
     private static void modifySet(final String who, final String what,
         final Set<PosixFilePermission> set, final String instruction)
