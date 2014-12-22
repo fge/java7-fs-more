@@ -10,22 +10,19 @@ import java.util.regex.Pattern;
 @ParametersAreNonnullByDefault
 public final class ModeParser
 {
-    private static final Pattern PATTERN = Pattern.compile(",");
+    private static final Pattern COMMA = Pattern.compile(",");
 
     private ModeParser()
     {
         throw new Error("nice try!");
     }
 
-    static void parse(final String instruction,
-                         final Set<PosixFilePermission> toAdd,
-                         final Set<PosixFilePermission> toRemove)
+    public static void parse(final String instructions,
+        final Set<PosixFilePermission> toAdd,
+        final Set<PosixFilePermission> toRemove)
     {
-        String[] instructionSet = PATTERN.split(instruction);
-        for(String ins: instructionSet) {
-            parseOne(ins,toAdd,toRemove);
-        }
-        
+        for(final String instruction: COMMA.split(instructions))
+            parseOne(instruction,toAdd,toRemove);
     }
 
     // Visible for testing

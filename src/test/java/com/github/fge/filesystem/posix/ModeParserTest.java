@@ -147,7 +147,8 @@ public final class ModeParserTest
         });
         list.add(new Object[] {
                 "ug-r,og+xr",
-                EnumSet.of(OTHERS_EXECUTE,OTHERS_READ,GROUP_EXECUTE,GROUP_READ),
+                EnumSet.of(OTHERS_EXECUTE, OTHERS_READ, GROUP_EXECUTE,
+                    GROUP_READ),
                 EnumSet.of(OWNER_READ, GROUP_READ)
         });
 
@@ -161,15 +162,13 @@ public final class ModeParserTest
     {
 
         final Set<PosixFilePermission> toAdd
-                = EnumSet.noneOf(PosixFilePermission.class);
+            = EnumSet.noneOf(PosixFilePermission.class);
         final Set<PosixFilePermission> toRemove
-                = EnumSet.noneOf(PosixFilePermission.class);
+            = EnumSet.noneOf(PosixFilePermission.class);
 
         ModeParser.parse(instruction, toAdd, toRemove);
 
         assertThat(toAdd).isEqualTo(add);
         assertThat(toRemove).isEqualTo(remove);
     }
-    
-    
 }
