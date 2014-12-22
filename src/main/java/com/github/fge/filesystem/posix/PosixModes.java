@@ -48,6 +48,9 @@ public final class PosixModes
         for (int i = 0; i < PERMISSIONS_LENGTH; i++) {
             if ((intMode & 1) == 1)
                 set.add(PERMISSIONS[PERMISSIONS_LENGTH - i - 1]);
+            /*
+             * We're OK with >> instead of >>>, the sign bit will never be set
+             */
             intMode >>= 1;
         }
 
