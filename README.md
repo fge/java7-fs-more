@@ -11,7 +11,8 @@ There are no dependencies other than the JRE.
 
 ## Versions
 
-The current version is **0.1.0**. It is available on Maven.
+The current version is **0.1.0**. It is available on Maven and
+[Bintray](https://bintray.com/fge/maven/java7-fs-more/view).
 
 The javadoc is [available online](https://fge.github.io/java7-fs-more). No version is released yet.
 
