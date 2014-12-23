@@ -7,11 +7,67 @@ This project is licensed under both LGPLv3 and ASL 2.0. See file LICENSE for mor
 This is a collection of utilities for manipulating all things JSR 203, that is the new java.nio.file
 API. It requires Java 7+.
 
+There are no dependencies other than the JRE.
+
+## Versions
+
+The current version is **0.1.0**. It is available on Maven.
+
 The javadoc is [available online](https://fge.github.io/java7-fs-more). No version is released yet.
 
-There are no prerequisites other than the JRE (7+).
-
 ## Contents
+
+### Recursive copy and deletion
+
+You can copy directories recursively, even across filesystems, and delete recursively:
+
+```java
+final Path windowsPath = ...;
+final Path unixPath = ...;
+
+MoreFiles.copyRecursive(windowsPath, unixPath, RecursionMode.FAIL_FAST);
+
+final Path victim = ...;
+MoreFiles.deleteRecursively(victim, RecursionMode.KEEP_GOING);
+```
+
+Recursive operations have two modes: `FAIL_FAST` will fail at the first error encountered, whereas
+`KEEP_GOING` will continue in the event of an error; but in the event of an error, an exception
+_will_ be thrown, which "embeds" all errors it has encountered during the operation.
+
+See the javadoc for more details.
+
+### POSIX permission utility methods
+
+You have a lot of utility methods to set or change POSIX permissions on
+files/directories:
+
+```java
+// Set the permissions on a file or directory
+MoreFiles.setMode(path, 0644);
+MoreFiles.setMode(path, "rw-r--r--");
+
+// Alter the permissions of a file or directory
+MoreFiles.changeMode(path, "o-rwx,g+w");
+```
+
+There are also "umask insensitive" versions of `create{File,Directory,Directories}`:
+
+```java
+MoreFiles.createFile(path, 0644);
+MoreFiles.createFile(path, "rw-r--r--");
+
+MoreFiles.createDirectory(path, 0750);
+MoreFiles.createDirectory(path, "rwxr-x---");
+
+MoreFiles.createDirectories(path, 0750);
+MoreFiles.createDirectories(path, "rwxr-x---");
+```
+
+### `touch`
+
+You also have `MoreFiles.touch()` which works in a similar manner than the classical Unix `touch`
+command.
 
 ### Path resolution
 
@@ -31,54 +87,6 @@ See the javadoc for more details (limitations etc).
 
 Until recently, the JDK had a bug with empty path normalization under Unix (see
 [here](https://bugs.openjdk.java.net/browse/JDK-8037945). This method works around this bug.
-
-### Recursive copy
-
-You can copy directories recursively, even across filesystems:
-
-```java
-final Path windowsPath = ...;
-final Path unixPath = ...;
-
-MoreFiles.copyRecursive(windowsPath, unixPath, RecursionMode.FAIL_FAST);
-```
-
-There are two modes: `FAIL_FAST` will fail at the first error encountered, whereas `KEEP_GOING` will
-continue in the event of an error (but it will throw a `RecursiveCopyException`, which contains all
-captured exceptions; see the javadoc).
-
-Note that attributes (owner/group, permissions etc) are NOT copied.
-
-### Recursive deletion
-
-You can delete a path recursively:
-
-```java
-MoreFiles.deleteRecursively(victim, RecursionMode.KEEP_GOING);
-```
-
-### POSIX permission utility methods
-
-For example:
-
-```java
-MoreFiles.setMode(path, 0644);
-MoreFiles.setMode(path, "rw-r--r--");
-
-MoreFiles.createFile(path, 0644);
-MoreFiles.createFile(path, "rw-r--r--");
-
-MoreFiles.createDirectory(path, 0750);
-MoreFiles.createDirectory(path, "rwxr-x---");
-
-MoreFiles.createDirectories(path, 0750);
-MoreFiles.createDirectories(path, "rwxr-x---");
-```
-
-### `touch`
-
-You also have `MoreFiles.touch()` which works in a similar manner than the classical Unix `touch`
-command.
 
 ## Contributions
 
