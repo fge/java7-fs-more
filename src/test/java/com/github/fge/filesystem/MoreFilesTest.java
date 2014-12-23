@@ -32,9 +32,9 @@ public final class MoreFilesTest
     public void initFs()
         throws IOException
     {
-        // TODO: umask's meaning is INVERTED :(
+        // Simulate a umask of 027
         fs = MemoryFileSystemBuilder.newLinux()
-            .setUmask(PosixFilePermissions.fromString("rwx------"))
+            .setUmask(PosixFilePermissions.fromString("----w-rwx"))
             .build("MoreFilesTest");
         fileTime = FileTime.fromMillis(System.currentTimeMillis() - 10_000L);
         path = fs.getPath("/existing");
