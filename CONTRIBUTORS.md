@@ -2,4 +2,10 @@
 
 * MorePaths.normalize()
 * MorePaths.resolve()
+* chmod string instruction parsing
+
+## https://github.com/TheItachiUchiha
+
+* MoreFiles.touch()
+* Fail fast deletion file visitor
 
