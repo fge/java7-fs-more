@@ -16,6 +16,8 @@ The current version is **0.1.0**. It is available on Maven and
 
 The javadoc is [available online](https://fge.github.io/java7-fs-more).
 
+See also file `CONTRIBUTORS.md`.
+
 ## Contents
 
 ### Recursive copy and deletion

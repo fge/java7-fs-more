@@ -7,5 +7,6 @@
 ## https://github.com/TheItachiUchiha
 
 * MoreFiles.touch()
-* Fail fast deletion file visitor
+* Fail fast deletion visitor
+* Keep going copy visitor
 
