@@ -17,21 +17,28 @@ import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 
 /**
  * Utility class to complement JDK's {@link Files}
@@ -43,6 +50,13 @@ import java.util.Set;
 @ParametersAreNonnullByDefault
 public final class MoreFiles
 {
+
+    //Right now we are supporting only these options.
+    private static List<OpenOption> VALID_OPTIONS
+            = Arrays.<OpenOption>asList(
+            StandardOpenOption.CREATE, StandardOpenOption.CREATE_NEW,
+            LinkOption.NOFOLLOW_LINKS);
+
     private MoreFiles()
     {
         throw new Error("nice try!");
@@ -95,8 +109,8 @@ public final class MoreFiles
      * @see KeepGoingCopyVisitor
      */
     public static void copyRecursive(final Path source, final Path destination,
-        final RecursionMode mode, final CopyOption... options)
-        throws IOException
+                                     final RecursionMode mode, final CopyOption... options)
+            throws IOException
     {
         Objects.requireNonNull(mode);
 
@@ -132,7 +146,7 @@ public final class MoreFiles
 
         final RecursiveCopyException e = new RecursiveCopyException();
         final FileVisitor<Path> visitor
-            = new KeepGoingCopyVisitor(src, dst, e);
+                = new KeepGoingCopyVisitor(src, dst, e);
 
         Files.walkFileTree(src, visitor);
         if (e.getSuppressed().length != 0)
@@ -167,8 +181,8 @@ public final class MoreFiles
      * @see Files#delete(Path)
      */
     public static void deleteRecursive(final Path victim,
-        final RecursionMode mode)
-        throws IOException
+                                       final RecursionMode mode)
+            throws IOException
     {
         Objects.requireNonNull(victim);
         Objects.requireNonNull(mode);
@@ -178,7 +192,7 @@ public final class MoreFiles
         switch (mode) {
             case KEEP_GOING:
                 final RecursiveDeletionException exception
-                    = new RecursiveDeletionException();
+                        = new RecursiveDeletionException();
                 visitor = new KeepGoingDeletionVisitor(victim, exception);
                 Files.walkFileTree(victim, visitor);
                 if (exception.getSuppressed().length != 0)
@@ -217,7 +231,7 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path setMode(final Path path, final int mode)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(path);
         final Set<PosixFilePermission> perms = PosixModes.intModeToPosix(mode);
@@ -250,13 +264,13 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path setMode(final Path path, final String permissions)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(permissions);
         Objects.requireNonNull(path);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(permissions);
+                = PosixFilePermissions.fromString(permissions);
 
         return Files.setPosixFilePermissions(path, perms);
     }
@@ -288,13 +302,13 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createFile(final Path path, final String permissions)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(path);
         Objects.requireNonNull(permissions);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(permissions);
+                = PosixFilePermissions.fromString(permissions);
 
         return doCreateFile(path, perms);
     }
@@ -325,7 +339,7 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createFile(final Path path, final int mode)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(path);
 
@@ -361,13 +375,13 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createDirectory(final Path dir, final String permissions)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(dir);
         Objects.requireNonNull(permissions);
 
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(permissions);
+                = PosixFilePermissions.fromString(permissions);
 
         return doCreateDirectory(dir, perms);
     }
@@ -398,7 +412,7 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createDirectory(final Path dir, final int mode)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(dir);
 
@@ -437,15 +451,15 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createDirectories(final Path dir,
-        final String permissions)
-        throws IOException
+                                         final String permissions)
+            throws IOException
     {
         Objects.requireNonNull(dir);
         Objects.requireNonNull(permissions);
 
         final Path realDir = dir.toAbsolutePath();
         final Set<PosixFilePermission> perms
-            = PosixFilePermissions.fromString(permissions);
+                = PosixFilePermissions.fromString(permissions);
 
         doCreateDirectories(realDir, perms);
 
@@ -482,7 +496,7 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path createDirectories(final Path dir, final int mode)
-        throws IOException
+            throws IOException
     {
         Objects.requireNonNull(dir);
 
@@ -517,7 +531,7 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path touch(final Path path)
-        throws IOException
+            throws IOException
     {
         if (!Files.exists(Objects.requireNonNull(path)))
             return Files.createFile(path);
@@ -549,12 +563,12 @@ public final class MoreFiles
      */
     @Nonnull
     public static Path changeMode(final Path target, final String instructions)
-        throws IOException
+            throws IOException
     {
         final PermissionsSet set = ModeParser.buildPermissionsSet(instructions);
 
         final Set<PosixFilePermission> before
-            = Files.getPosixFilePermissions(target);
+                = Files.getPosixFilePermissions(target);
 
         final Set<PosixFilePermission> after = set.modify(before);
 
@@ -564,33 +578,33 @@ public final class MoreFiles
     // Visible for testing
     @Nonnull
     static Path setTimes(final Path path, final FileTime fileTime)
-        throws IOException
+            throws IOException
     {
         final BasicFileAttributeView view = Files.getFileAttributeView(path,
-            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+                BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
         view.setTimes(fileTime, fileTime, null);
         return path;
     }
 
     private static Path doCreateFile(final Path path,
-        final Set<PosixFilePermission> perms)
-        throws IOException
+                                     final Set<PosixFilePermission> perms)
+            throws IOException
     {
         Files.createFile(path);
         return Files.setPosixFilePermissions(path, perms);
     }
 
     private static Path doCreateDirectory(final Path dir,
-        final Set<PosixFilePermission> perms)
-        throws IOException
+                                          final Set<PosixFilePermission> perms)
+            throws IOException
     {
         Files.createDirectory(dir);
         return Files.setPosixFilePermissions(dir, perms);
     }
 
     private static void doCreateDirectories(final Path realDir,
-        final Set<PosixFilePermission> perms)
-        throws IOException
+                                            final Set<PosixFilePermission> perms)
+            throws IOException
     {
         final List<Path> created = new ArrayList<>();
 
@@ -606,4 +620,49 @@ public final class MoreFiles
         for (final Path path: created)
             Files.setPosixFilePermissions(path, perms);
     }
+
+    /**
+     * Opens a zip file on the FileSystem
+     *
+     * <p>StandardOpenOption.CREATE, StandardOpenOption.CREATE_NEW,
+     * LinkOption.NOFOLLOW_LINKS can be injected right now.
+     * </p>
+     *
+     * @param path the path to open zip from
+     * @param options StandardOpenOption.CREATE, StandardOpenOption.CREATE_NEW,
+     * LinkOption.NOFOLLOW_LINKS
+     * @return returns the FileSystem of zip
+     * @throws UnsupportedOperationException any option other than above mentioned
+     * is provided
+     * @throws FileAlreadyExistsException CREATE_NEW option is provided and
+     * @throws IOException otherwise TODO: Just have to know why it's so??
+     */
+
+    @Nonnull
+    public static FileSystem openZip(final Path path,
+                                     final OpenOption... options)
+            throws IOException
+    {
+        boolean isCreateNew = false;
+
+        Objects.requireNonNull(path);
+
+        for(OpenOption option: options) {
+            if (!VALID_OPTIONS
+                    .contains(Objects.requireNonNull(option)))
+                throw new UnsupportedOperationException
+                        ("option is not supported");
+
+            if (option.equals(StandardOpenOption.CREATE_NEW))
+                isCreateNew = true;
+        }
+
+        if(isCreateNew && Files.exists(path)) {
+            throw new FileAlreadyExistsException(path.toString());
+        }
+
+        return null; //TODO: Continued yet
+
+    }
+
 }
