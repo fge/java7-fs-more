@@ -13,40 +13,36 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.PosixFilePermissions;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-public class MoreFilesZipTest {
+public final class MoreFilesZipTest
+{
     private FileSystem fs;
     private Path path;
 
     @BeforeClass
     public void initFs()
-            throws IOException
+        throws IOException
     {
-        fs = MemoryFileSystemBuilder.newLinux()
-                .build("MoreFilesTest");
+        fs = MemoryFileSystemBuilder.newLinux().build("MoreFilesZipTest");
         path = fs.getPath("existing.zip");
         Files.createFile(path);
-
     }
 
     @Test
     public void openZipWillNotAcceptUnsupportedOptions()
-            throws IOException
+        throws IOException
     {
         try {
             MoreFiles.openZip(mock(Path.class), mock(OpenOption.class));
             shouldHaveThrown(UnsupportedOperationException.class);
         } catch (UnsupportedOperationException e) {
             assertThat(e)
-                    .isExactlyInstanceOf(UnsupportedOperationException.class)
-                    .hasMessage("option is not supported");
+                .isExactlyInstanceOf(UnsupportedOperationException.class)
+                .hasMessage("option is not supported");
         }
     }
 
@@ -58,17 +54,16 @@ public class MoreFilesZipTest {
             shouldHaveThrown(IOException.class);
         } catch (IOException e) {
             assertThat(e)
-                    .isExactlyInstanceOf(FileAlreadyExistsException.class)
-                    .hasMessage(path.toString());
+                .isExactlyInstanceOf(FileAlreadyExistsException.class)
+                .hasMessage(path.toString());
         }
 
     }
 
     @AfterClass
     public void closeFs()
-            throws IOException
+        throws IOException
     {
         fs.close();
     }
-
 }
