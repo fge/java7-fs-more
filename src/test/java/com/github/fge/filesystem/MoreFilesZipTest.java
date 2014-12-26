@@ -7,21 +7,18 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public final class MoreFilesZipTest
 {
     private FileSystem fs;
     private Path path;
+    private Path symbolicLink;
 
     @BeforeClass
     public void initFs()
@@ -29,7 +26,9 @@ public final class MoreFilesZipTest
     {
         fs = MemoryFileSystemBuilder.newLinux().build("MoreFilesZipTest");
         path = fs.getPath("existing.zip");
+        symbolicLink = fs.getPath("symbolic.zip");
         Files.createFile(path);
+        Files.createSymbolicLink(symbolicLink,path);
     }
 
     @Test
@@ -56,6 +55,20 @@ public final class MoreFilesZipTest
             assertThat(e)
                 .isExactlyInstanceOf(FileAlreadyExistsException.class)
                 .hasMessage(path.toString());
+        }
+
+    }
+
+    @Test
+    public void symlinkPathWithNOFOLLOWLINKOptionThrowsIOException()
+    {
+        try {
+            MoreFiles.openZip(symbolicLink, LinkOption.NOFOLLOW_LINKS);
+            shouldHaveThrown(IOException.class);
+        } catch (IOException e) {
+            assertThat(e)
+                    .isExactlyInstanceOf(IOException.class)
+                    .hasMessage("refusing to open a symbolic link as a zip file");
         }
 
     }

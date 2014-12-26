@@ -656,6 +656,11 @@ public final class MoreFiles
 
             if (option.equals(StandardOpenOption.CREATE_NEW))
                 isCreateNew = true;
+            
+            if(option.equals(LinkOption.NOFOLLOW_LINKS)) {
+                if(Files.isSymbolicLink(path)) 
+                    throw new IOException("refusing to open a symbolic link as a zip file");
+            }
         }
 
         if(isCreateNew && Files.exists(path))
