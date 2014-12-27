@@ -15,10 +15,12 @@ import com.github.fge.filesystem.posix.PosixModes;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -34,7 +36,9 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -636,7 +640,7 @@ public final class MoreFiles
      * LinkOption.NOFOLLOW_LINKS
      * @return returns the FileSystem of zip
      *
-     * @throws UnsupportedOperationException any option other than above 
+     * @throws UnsupportedOperationException any option other than above
      * * mentioned
      * is provided
      * @throws FileAlreadyExistsException CREATE_NEW option is provided and
@@ -650,6 +654,7 @@ public final class MoreFiles
     {
 
         boolean isCreateNew = false;
+        boolean anyCreateOption = false;
 
         Objects.requireNonNull(path);
 
@@ -662,6 +667,10 @@ public final class MoreFiles
 
             if (option.equals(StandardOpenOption.CREATE_NEW)) {
                 isCreateNew = true;
+                anyCreateOption = true;
+            }
+            if (option.equals(StandardOpenOption.CREATE)) {
+                anyCreateOption = true;
             }
 
             /**
@@ -688,7 +697,26 @@ public final class MoreFiles
             throw new FileAlreadyExistsException(path.toString());
         }
 
-        return null; //TODO: Continued yet
+        /**
+         * Path points to a zip file which doesn't exist but no create option
+         * * is specified
+         * throws NoSuchFileException
+         */
+
+        if (!anyCreateOption && !Files.exists(path))
+            throw new NoSuchFileException("no such zip file");
+
+
+        /**
+         * Create option is specified and if path exists, 
+         * * return already existed zip filesystem, otherwise create new 
+         * * zip filesystem for the path and return
+         */
+        final URI zipURI = URI.create("jar:" + path.toUri().toString());
+        final Map<String, String> env = Collections.singletonMap("create",
+            String.valueOf(!Files.exists(path)));
+
+        return FileSystems.newFileSystem(zipURI, env);
     }
 
 }
