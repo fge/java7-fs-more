@@ -5,9 +5,7 @@ import com.github.fge.filesystem.exceptions.IsDirectoryException;
 import com.github.fge.filesystem.helpers.CustomAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import com.sun.nio.zipfs.ZipFileSystem;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,35 +33,12 @@ import static org.mockito.Mockito.when;
 public final class MoreFilesZipTest
 {
     private FileSystem fs;
-    private FileSystemProvider provider;
-    private Path path;
-    private Path fileNotExist;
-    private Path symbolicLink;
-    private Path directory;
-    private Path zipFilePath;
 
-    @BeforeClass
+    @BeforeMethod
     public void initFs()
         throws IOException
     {
         fs = MemoryFileSystemBuilder.newLinux().build("MoreFilesZipTest");
-        provider = mock(FileSystemProvider.class);
-        path = fs.getPath("existing.zip");
-        fileNotExist = fs.getPath("NonExisting.zip");
-        zipFilePath = fs.getPath("zipFile.zip");
-        URI uri = URI.create("jar:" + zipFilePath.toUri().toString());
-        /*
-        final Map<String, String> env
-            = Collections.singletonMap("create", "true");
-        try (
-            final FileSystem zipfs = FileSystems.newFileSystem(zipFile, env);
-        ) {
-           Files.createFile(zipfs.getPath(zipFile.toString()));
-        }*/
-        symbolicLink = fs.getPath("symbolic.zip");
-        directory = fs.getPath("dir");
-        Files.createSymbolicLink(symbolicLink, path);
-        Files.createDirectory(directory);
     }
 
     @Test
@@ -81,8 +56,9 @@ public final class MoreFilesZipTest
     }
 
     @Test
-    public void pathExistsThrowsFileAlreadyExistsExceptionForCREATE_NEW()
-    {
+    public void pathExistsThrowsFileAlreadyExistsExceptionForCREATE_NEW() throws IOException {
+        final Path path = fs.getPath("existing.zip");
+        Files.createFile(path);
         try {
             MoreFiles.openZip(path, StandardOpenOption.CREATE_NEW);
             shouldHaveThrown(IOException.class);
@@ -94,8 +70,11 @@ public final class MoreFilesZipTest
     }
 
     @Test
-    public void symlinkPathWithNOFOLLOWLINKOptionThrowsIOException()
-    {
+    public void symlinkPathWithNOFOLLOWLINKOptionThrowsIOException() throws IOException {
+        final Path path = fs.getPath("existing.zip");
+        final Path symbolicLink = fs.getPath("symbolic.zip");
+        Files.createFile(path);
+        Files.createSymbolicLink(symbolicLink, path);
         try {
             MoreFiles.openZip(symbolicLink, LinkOption.NOFOLLOW_LINKS);
             shouldHaveThrown(IOException.class);
@@ -109,7 +88,9 @@ public final class MoreFilesZipTest
     @Test
     public void pathIsADirectoryThrowsIsDirectoryException()
     {
+        final Path directory = fs.getPath("dir");
         try {
+            Files.createDirectory(directory);
             MoreFiles.openZip(directory, LinkOption.NOFOLLOW_LINKS);
             shouldHaveThrown(IOException.class);
         } catch (IOException e) {
@@ -122,6 +103,7 @@ public final class MoreFilesZipTest
     @Test
     public void pathIsAZipFileWithNoCreateOptionThrowsNoSuchFileException()
     {
+        final Path fileNotExist = fs.getPath("NonExisting.zip");
         try {
             MoreFiles.openZip(fileNotExist, LinkOption.NOFOLLOW_LINKS);
             shouldHaveThrown(IOException.class);
@@ -136,34 +118,25 @@ public final class MoreFilesZipTest
     public void pathIsAnExistingZipFileWithCreateOptionReturnsFileSystem() 
         throws IOException
     {
-        //TODO: This test is weird. Don't know what to do.
-        
-        final Map<String, String> env
-            = Collections.singletonMap("create", "true");
-        URI uri = URI.create("jar:" + zipFilePath.toUri().toString());
+        final String fileName = "/zipFile.zip";
+        final Path zipFilePath = fs.getPath("zipPathFile.zip");
         try (
-            final FileSystem zipfs = FileSystems.newFileSystem(uri,env);
+            final FileSystem zipfs = MoreFiles.openZip(zipFilePath, StandardOpenOption.CREATE);
         ) {
-            //Path p = zipFilePath.toUri();
-            FileTime modifiedTime = Files.getLastModifiedTime(zipfs.getPath
-                (uri.toString()));
-            byte[] data = new byte[10];
-            Files.write(zipFilePath,data);
-            assertThat(Files.getLastModifiedTime(zipfs.getPath
-                (uri.toString())))
-                .isGreaterThan(modifiedTime);
+            Path pathInZip = zipfs.getPath(fileName);
+            Files.createFile(pathInZip); //This line is throwing exception
+        }
+        final URI uri = URI.create("jar:" + zipFilePath.toUri());
+        final Map<String, ?> env = Collections.singletonMap("readonly", "true");
+        try (
+                final FileSystem newfs = FileSystems.newFileSystem(uri, env);
+        ) {
+            Path newPath = newfs.getPath(fileName);
+            assertThat(newPath.toFile().exists()).isTrue();
         }
     }
 
-    @Test
-    public void pathIsNotAnExistingZipFileWithCreateOptionReturnsFileSystem()
-        throws IOException
-    {
-        FileSystem f = MoreFiles.openZip(path, StandardOpenOption.CREATE);
-        assertThat(f).isNotEqualTo(fs);
-    }
-
-    @AfterClass
+    @AfterMethod
     public void closeFs()
         throws IOException
     {
