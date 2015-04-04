@@ -158,7 +158,6 @@ public final class MoreFiles
         }
     }
 
-
     /**
      * Delete a path recursively
      * <p/>
@@ -658,20 +657,19 @@ public final class MoreFiles
 
         Objects.requireNonNull(path);
 
-        for (OpenOption option : options) {
+        for (final OpenOption option: options) {
             Objects.requireNonNull(option);
-            if (!VALID_OPTIONS.contains(option)) {
+            if (!VALID_OPTIONS.contains(option))
                 throw new UnsupportedOperationException(
-                    "option is not " + "supported");
-            }
+                    "option is not supported");
 
             if (option.equals(StandardOpenOption.CREATE_NEW)) {
                 isCreateNew = true;
                 anyCreateOption = true;
             }
-            if (option.equals(StandardOpenOption.CREATE)) {
+
+            if (option.equals(StandardOpenOption.CREATE))
                 anyCreateOption = true;
-            }
 
             /**
              * Provided option is LinkOption.NOFOLLOW_LINKS and path is a 
@@ -679,25 +677,21 @@ public final class MoreFiles
              * throws IOException
              */
 
-            if (option.equals(LinkOption.NOFOLLOW_LINKS)) {
-                if (Files.isSymbolicLink(path)) {
+            if (option.equals(LinkOption.NOFOLLOW_LINKS))
+                if (Files.isSymbolicLink(path))
                     throw new IOException(
                         "refusing to open a symbolic link as a zip file");
-                }
-            }
 
             // /If path is a directory, throw IsDirectoryException
-            if (Files.isDirectory(path)) {
+            if (Files.isDirectory(path))
                 throw new IsDirectoryException(
                     "refusing to open a directory as a zip file");
-            }
         }
 
         final boolean fileExists = Files.exists(path);
 
-        if (isCreateNew && fileExists) {
+        if (isCreateNew && fileExists)
             throw new FileAlreadyExistsException(path.toString());
-        }
 
         /**
          * Path points to a zip file which doesn't exist but no create option
@@ -715,10 +709,9 @@ public final class MoreFiles
          * * zip filesystem for the path and return
          */
         final URI zipURI = URI.create("jar:" + path.toUri().toString());
-        final Map<String, String> env = Collections.singletonMap("create",
-            String.valueOf(!fileExists));
+        final Map<String, String> env
+            = Collections.singletonMap("create", String.valueOf(!fileExists));
 
         return FileSystems.newFileSystem(zipURI, env);
     }
-
 }
