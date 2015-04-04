@@ -693,7 +693,9 @@ public final class MoreFiles
             }
         }
 
-        if (isCreateNew && Files.exists(path)) {
+        final boolean fileExists = Files.exists(path);
+
+        if (isCreateNew && fileExists) {
             throw new FileAlreadyExistsException(path.toString());
         }
 
@@ -703,7 +705,7 @@ public final class MoreFiles
          * throws NoSuchFileException
          */
 
-        if (!anyCreateOption && !Files.exists(path))
+        if (!anyCreateOption && !fileExists)
             throw new NoSuchFileException("no such zip file");
 
 
@@ -714,7 +716,7 @@ public final class MoreFiles
          */
         final URI zipURI = URI.create("jar:" + path.toUri().toString());
         final Map<String, String> env = Collections.singletonMap("create",
-            String.valueOf(!Files.exists(path)));
+            String.valueOf(!fileExists));
 
         return FileSystems.newFileSystem(zipURI, env);
     }
