@@ -628,7 +628,8 @@ public final class MoreFiles
     }
 
     /**
-     * Opens a zip file on the FileSystem
+     * Opens a zip file on the FileSystem. This filesystem supposes that the
+     * zip already exists and it will be opened for read and write
      * <p/>
      * <p>StandardOpenOption.CREATE, StandardOpenOption.CREATE_NEW,
      * LinkOption.NOFOLLOW_LINKS can be injected right now.
