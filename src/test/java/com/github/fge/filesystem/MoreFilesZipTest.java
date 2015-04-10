@@ -23,6 +23,7 @@ import java.util.Map;
 import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public final class MoreFilesZipTest
 {
@@ -147,6 +148,53 @@ public final class MoreFilesZipTest
         ) {
             path = newfs.getPath(fileName);
             assertThat(Files.exists(path)).isTrue();
+        }
+    }
+
+    @Test
+    public void createZipOnlyAcceptsCREATE_NEW()
+            throws IOException
+    {
+        final Path zipFilePath = fs.getPath("zipPathFile.zip");
+        try {
+            MoreFiles.createZip(zipFilePath, LinkOption.NOFOLLOW_LINKS);
+            shouldHaveThrown(UnsupportedOperationException.class);
+        } catch (UnsupportedOperationException e) {
+            assertThat(e)
+                    .isExactlyInstanceOf(UnsupportedOperationException.class)
+                    .hasMessage("only StandardOpenOption.CREATE_NEW is supported");
+        }
+    }
+
+    @Test
+    public void createZipOnlyDoesNotWorkOnDirectories()
+            throws IOException
+    {
+        final Path filePath = fs.getPath("/test");
+        Files.createDirectory(filePath);
+        try {
+            MoreFiles.createZip(filePath, StandardOpenOption.CREATE_NEW);
+            shouldHaveThrown(IsDirectoryException.class);
+        } catch (IsDirectoryException e) {
+            assertThat(e)
+                    .isExactlyInstanceOf(IsDirectoryException.class)
+                    .hasMessage("refusing to open a directory as a zip file");
+        }
+    }
+
+    @Test
+    public void createZipThrowsFileAlreadyExistsExceptionIfFileAlreadyExists()
+            throws IOException
+    {
+        final Path filePath = fs.getPath("/test.zip");
+        Files.createFile(filePath);
+        try {
+            MoreFiles.createZip(filePath, StandardOpenOption.CREATE_NEW);
+            shouldHaveThrown(FileAlreadyExistsException.class);
+        } catch (FileAlreadyExistsException e) {
+            assertThat(e)
+                    .isExactlyInstanceOf(FileAlreadyExistsException.class)
+                    .hasMessage(filePath.toString());
         }
     }
 

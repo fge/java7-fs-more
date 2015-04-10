@@ -57,7 +57,7 @@ public final class MoreFiles
     //Right now we are supporting only these options.
     private static final List<OpenOption> VALID_OPTIONS = Arrays
         .<OpenOption>asList(StandardOpenOption.CREATE,
-            StandardOpenOption.CREATE_NEW, LinkOption.NOFOLLOW_LINKS);
+            StandardOpenOption.CREATE_NEW, LinkOption.NOFOLLOW_LINKS, StandardOpenOption.READ);
 
     private MoreFiles()
     {
@@ -273,7 +273,7 @@ public final class MoreFiles
         Objects.requireNonNull(path);
 
         final Set<PosixFilePermission> perms = PosixFilePermissions.fromString(
-            permissions);
+                permissions);
 
         return Files.setPosixFilePermissions(path, perms);
     }
@@ -384,7 +384,7 @@ public final class MoreFiles
         Objects.requireNonNull(permissions);
 
         final Set<PosixFilePermission> perms = PosixFilePermissions.fromString(
-            permissions);
+                permissions);
 
         return doCreateDirectory(dir, perms);
     }
@@ -462,7 +462,7 @@ public final class MoreFiles
 
         final Path realDir = dir.toAbsolutePath();
         final Set<PosixFilePermission> perms = PosixFilePermissions.fromString(
-            permissions);
+                permissions);
 
         doCreateDirectories(realDir, perms);
 
@@ -586,7 +586,7 @@ public final class MoreFiles
         throws IOException
     {
         final BasicFileAttributeView view = Files.getFileAttributeView(path,
-            BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+                BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
         view.setTimes(fileTime, fileTime, null);
         return path;
     }
@@ -628,6 +628,47 @@ public final class MoreFiles
     }
 
     /**
+     * Creates a new zip file and returns the zip File System
+     * @param path to create zip file on
+     * @param option StandardOpenOption.CREATE_NEW is only supported for this method
+     * @return zip file system
+     * @throws java.io.IOException
+     * @throws IsDirectoryException if provided path is directory instead of a zip
+     * @throws FileAlreadyExistsException if file to be created already exists
+     * @throws UnsupportedOperationException if option other than StandardOpenOption.CREATE_NEW
+     * is provided
+     */
+
+    @Nonnull
+    public static FileSystem createZip(final Path path, final OpenOption option)
+            throws IOException {
+
+        Objects.requireNonNull(path);
+        Objects.requireNonNull(option);
+
+        if (option.equals(StandardOpenOption.CREATE_NEW)) {
+
+            if (Files.isDirectory(path))
+                throw new IsDirectoryException(
+                        "refusing to open a directory as a zip file");
+
+            final boolean fileExists = Files.exists(path);
+
+            if (fileExists)
+                throw new FileAlreadyExistsException(path.toString());
+
+            final URI zipURI = URI.create("jar:" + path.toUri().toString());
+            final Map<String, String> env
+                    = Collections.singletonMap("create", "true");
+
+            return FileSystems.newFileSystem(zipURI, env);
+        }
+
+        throw new UnsupportedOperationException(
+                "only StandardOpenOption.CREATE_NEW is supported");
+    }
+
+    /**
      * Opens a zip file on the FileSystem
      * <p/>
      * <p>StandardOpenOption.CREATE, StandardOpenOption.CREATE_NEW,
@@ -643,7 +684,7 @@ public final class MoreFiles
      * * mentioned
      * is provided
      * @throws FileAlreadyExistsException CREATE_NEW option is provided and
-     * @throws IOException otherwise TODO: Just have to know why it's so??
+     * @throws IOException otherwise
      */
 
     @Nonnull
@@ -654,6 +695,7 @@ public final class MoreFiles
 
         boolean isCreateNew = false;
         boolean anyCreateOption = false;
+        boolean isReadOnly = false;
 
         Objects.requireNonNull(path);
 
@@ -670,6 +712,9 @@ public final class MoreFiles
 
             if (option.equals(StandardOpenOption.CREATE))
                 anyCreateOption = true;
+
+            if (option.equals(StandardOpenOption.READ))
+                isReadOnly = true;
 
             /**
              * Provided option is LinkOption.NOFOLLOW_LINKS and path is a 
@@ -708,9 +753,12 @@ public final class MoreFiles
          * * return already existed zip filesystem, otherwise create new 
          * * zip filesystem for the path and return
          */
+
         final URI zipURI = URI.create("jar:" + path.toUri().toString());
-        final Map<String, String> env
-            = Collections.singletonMap("create", String.valueOf(!fileExists));
+        Map<String, String> env = Collections.singletonMap("create", String.valueOf(!fileExists));
+
+        if (isReadOnly)
+            env = Collections.singletonMap("readonly", "true");
 
         return FileSystems.newFileSystem(zipURI, env);
     }
