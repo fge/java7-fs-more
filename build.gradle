@@ -45,8 +45,8 @@ apply(plugin: "propdeps-eclipse");
 apply(plugin: "info.solidsoft.pitest");
 
 group = "com.github.fge";
-version = "0.2.0-SNAPSHOT";
-description = "Convenient classes for Path manipulations";
+version = "0.2.0";
+description = "JSR 203 utility classes (Path/FileSystem/FileSystemProvider)";
 
 def javaVersion = JavaVersion.VERSION_1_7;
 sourceCompatibility = javaVersion;
