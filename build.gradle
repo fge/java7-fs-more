@@ -47,8 +47,10 @@ apply(plugin: "info.solidsoft.pitest");
 group = "com.github.fge";
 version = "0.2.0-SNAPSHOT";
 description = "Convenient classes for Path manipulations";
-sourceCompatibility = "1.7";
-targetCompatibility = "1.7"; // defaults to sourceCompatibility
+
+def javaVersion = JavaVersion.VERSION_1_7;
+sourceCompatibility = javaVersion;
+targetCompatibility = javaVersion; // defaults to sourceCompatibility
 
 /*
  * List of dependencies
@@ -78,6 +80,14 @@ repositories {
     mavenCentral();
 }
 
+task enforceVersion << {
+    def foundVersion = JavaVersion.current();
+    if (foundVersion != javaVersion)
+        throw new IllegalStateException("Wrong java version; required is " +
+            javaVersion + ", but found " + foundVersion);
+}
+
+compileJava.dependsOn(enforceVersion);
 /*
  * Necessary! Otherwise TestNG will not be used...
  */
