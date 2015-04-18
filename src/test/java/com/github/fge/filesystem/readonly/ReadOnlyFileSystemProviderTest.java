@@ -39,6 +39,7 @@ public final class ReadOnlyFileSystemProviderTest
         final List<Object[]> options = new ArrayList<>();
 
         options.add(new Object[]{ StandardOpenOption.WRITE });
+        options.add(new Object[]{ StandardOpenOption.CREATE });
         options.add(new Object[]{ StandardOpenOption.CREATE_NEW });
         options.add(new Object[]{ StandardOpenOption.APPEND });
 

@@ -32,6 +32,7 @@ public final class ReadOnlyFileSystemProvider
     extends FileSystemProvider
 {
     private static final Set<? extends OpenOption> WRITE_OPTIONS = EnumSet.of(
+        StandardOpenOption.CREATE,
         StandardOpenOption.CREATE_NEW,
         StandardOpenOption.WRITE,
         StandardOpenOption.APPEND

@@ -2,15 +2,16 @@ package com.github.fge.filesystem;
 
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
-
-import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
 
 public final class MoreFileSystemsTest {
 
@@ -20,7 +21,7 @@ public final class MoreFileSystemsTest {
 
     @BeforeMethod
     public void initFs()
-            throws IOException
+        throws IOException
     {
         fs = MemoryFileSystemBuilder.newLinux().build("MoreFileSystemsTest");
         nonExistingZip = fs.getPath("/nonExisting.zip");
@@ -30,35 +31,15 @@ public final class MoreFileSystemsTest {
         final Map<String, ?> env = Collections.singletonMap("create", "true");
 
         try (
-                final FileSystem tmp = FileSystems.newFileSystem(uri, env);
+            final FileSystem tmp = FileSystems.newFileSystem(uri, env);
         ) {
         }
     }
-
-    @Test
-    public void openZipFileSystemOpensFileAsReadOnly()
-            throws IOException
-    {
-
-        final String fileName = "/zipFile.zip";
-        try (
-                final FileSystem fileSystem = MoreFileSystems.openZip(existingZip, true);
-        ) {
-            Path p = fileSystem.getPath(fileName);
-            Files.createFile(p);
-            shouldHaveThrown(ReadOnlyFileSystemException.class);
-        } catch (ReadOnlyFileSystemException e) {
-            assertThat(e)
-                    .isExactlyInstanceOf(ReadOnlyFileSystemException.class);
-        }
-    }
-
 
     @AfterMethod
     public void closeFs()
-            throws IOException
+        throws IOException
     {
         fs.close();
     }
-
 }
