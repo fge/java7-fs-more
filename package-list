@@ -3,3 +3,4 @@ com.github.fge.filesystem.copy
 com.github.fge.filesystem.deletion
 com.github.fge.filesystem.exceptions
 com.github.fge.filesystem.posix
+com.github.fge.filesystem.readonly
