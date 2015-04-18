@@ -11,8 +11,12 @@ There are no dependencies other than the JRE.
 
 ## Versions
 
-The current version is **0.2.0**. It is available on Maven and
-[Bintray](https://bintray.com/fge/maven/java7-fs-more/view).
+The current version is **0.2.0**:
+
+```groovy
+dependencies {
+    compile(group: "com.github.fge", name: "java7-fs-more", version: "0.2.0");
+```
 
 The javadoc is [available online](https://fge.github.io/java7-fs-more).
 
