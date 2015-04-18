@@ -1,8 +1,9 @@
-## Shakeel Shahzad (https://github.com/Shaky777)
+## Shakeel Shahzad (https://github.com/mrseven7seven)
 
 * MorePaths.normalize()
 * MorePaths.resolve()
 * chmod string instruction parsing
+* ReadOnlyFileSystem{,Provider} wrappers
 
 ## https://github.com/TheItachiUchiha
 

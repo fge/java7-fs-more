@@ -11,7 +11,7 @@ There are no dependencies other than the JRE.
 
 ## Versions
 
-The current version is **0.1.0**. It is available on Maven and
+The current version is **0.2.0**. It is available on Maven and
 [Bintray](https://bintray.com/fge/maven/java7-fs-more/view).
 
 The javadoc is [available online](https://fge.github.io/java7-fs-more).
@@ -39,6 +39,18 @@ Recursive operations have two modes: `FAIL_FAST` will fail at the first error en
 _will_ be thrown, which "embeds" all errors it has encountered during the operation.
 
 See the javadoc for more details.
+
+### Zips as filesystems; read only filesystems
+
+This package provides convenience methods to manipulate zips as filesystems using the [zip
+filesystem
+provider](http://docs.oracle.com/javase/8/docs/technotes/guides/io/fsp/zipfilesystemprovider.html):
+
+* `MoreFileSystems.createZip()` will create a new zip file;
+* `MoreFileSystems.openZip()` will open an existing zip file, either read write or read only.
+
+There is also `MoreFileSystems.readOnly()` which will return a read only version of an existing
+filesystem.
 
 ### POSIX permission utility methods
 
