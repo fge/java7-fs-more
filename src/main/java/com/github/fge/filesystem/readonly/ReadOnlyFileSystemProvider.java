@@ -27,6 +27,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Read only wrapper over an existing {@link FileSystemProvider}
+ *
+ * <p>This wrapper delegates all read only methods to the provider given as an
+ * argument to the constructor, and throws {@link ReadOnlyFileSystemException}
+ * for write-only methods, or methods which may include writes.</p>
+ *
+ * <p><strong>Limitations</strong>:</p>
+ *
+ * <ul>
+ *     <li>for methods having a set of {@link OpenOption}s as an argument, this
+ *     class only knows about the standard open options provided by the JDK (see
+ *     {@link StandardOpenOption});</li>
+ *     <li>attribute views obtained via {@link #getFileAttributeView(Path,
+ *     Class, LinkOption...)} do not prevent writes.</li>
+ * </ul>
+ */
 @SuppressWarnings("OverloadedVarargsMethod")
 public final class ReadOnlyFileSystemProvider
     extends FileSystemProvider
