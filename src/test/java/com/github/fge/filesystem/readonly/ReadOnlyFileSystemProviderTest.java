@@ -22,15 +22,14 @@ import static org.mockito.Mockito.mock;
 public final class ReadOnlyFileSystemProviderTest
 {
     private Path path;
-    private FileSystemProvider delegate;
-    private ReadOnlyFileSystemProvider provider;
+    private FileSystemProvider provider;
 
     @BeforeMethod
     public void init ()
     {
         path = mock(Path.class);
-        delegate = mock(FileSystemProvider.class);
-        provider = new ReadOnlyFileSystemProvider(delegate);
+        provider = new ReadOnlyFileSystemProvider(
+            mock(FileSystemProvider.class));
     }
 
     @DataProvider

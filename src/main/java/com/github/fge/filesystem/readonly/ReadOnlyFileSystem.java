@@ -12,12 +12,17 @@ import java.util.Set;
 
 /**
  * Read only wrapper over an existing {@link FileSystem}
- * <p>This wrapper delegates provider and isReadOnly methods to the file
- * system given as an
- * argument to the constructor</p>
- * <p><strong>Limitations</strong>:</p>
+ *
+ * <p>This wrapper delegates all methods to the filesystem provided as an
+ * argument except for two:</p>
+ *
+ * <ul>
+ *     <li>{@link #isReadOnly()} will always return {@code true};</li>
+ *     <li>{@link #provider()} will return the delegate's provider wrapped into
+ *     a {@link ReadOnlyFileSystemProvider}.</li>
+ * </ul>
  */
-public class ReadOnlyFileSystem
+public final class ReadOnlyFileSystem
     extends FileSystem
 {
     private final FileSystem delegate;
@@ -78,6 +83,7 @@ public class ReadOnlyFileSystem
         return delegate.supportedFileAttributeViews();
     }
 
+    @SuppressWarnings("OverloadedVarargsMethod")
     @Override
     public Path getPath(final String first, final String... more)
     {
