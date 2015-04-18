@@ -42,6 +42,10 @@ public final class FileTypeDetectorTest
         mimeType = "image/png";
         list.add(new Object[] { resourcePath, mimeType });
 
+        resourcePath = "/ftd/sample.zip";
+        mimeType = "application/zip";
+        list.add(new Object[] { resourcePath, mimeType });
+
         return list.iterator();
     }
 
