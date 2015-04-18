@@ -1,22 +1,27 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.exceptions.IsDirectoryException;
-
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.*;
-import java.util.*;
-import javax.annotation.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Utility class to complement JDK's {@link Files}
- * <p/>
+ * Utility class for {@link FileSystem}s
+ *
  * <p>Unless otherwise noted, all methods in this class do not accept null
  * arguments and will throw a {@link NullPointerException} if a null argument
  * is passed to them.</p>
  */
 @ParametersAreNonnullByDefault
-public final class MoreFileSystems {
+public final class MoreFileSystems
+{
+    private static final Map<String, ?> ZIP_ENV = Collections.emptyMap();
 
     private MoreFileSystems ()
     {
@@ -24,15 +29,14 @@ public final class MoreFileSystems {
     }
 
     @Nonnull
-    public static FileSystem openZip (Path path, boolean isReadOnly) throws IOException {
-
+    public static FileSystem openZip(final Path path, final boolean isReadOnly)
+        throws IOException
+    {
         Objects.requireNonNull(path);
 
-        final URI zipURI = URI.create("jar:" + path.toUri().toString());
-        final Map<String, String> env
-                = Collections.singletonMap("readonly", String.valueOf(isReadOnly));
+        final URI zipURI = URI.create("jar:" + path.toUri());
 
-        return FileSystems.newFileSystem(zipURI, env);
+        return FileSystems.newFileSystem(zipURI, ZIP_ENV);
     }
 
 }
