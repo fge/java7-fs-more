@@ -84,6 +84,7 @@ public final class ReadOnlyFileSystemProvider
         return delegate.newInputStream(path, options);
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public OutputStream newOutputStream(final Path path,
         final OpenOption... options)
@@ -135,6 +136,7 @@ public final class ReadOnlyFileSystemProvider
         return delegate.newDirectoryStream(dir, filter);
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs)
         throws IOException
@@ -142,6 +144,7 @@ public final class ReadOnlyFileSystemProvider
         throw new ReadOnlyFileSystemException();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void createSymbolicLink(final Path link, final Path target,
         final FileAttribute<?>... attrs)
@@ -150,6 +153,7 @@ public final class ReadOnlyFileSystemProvider
         throw new ReadOnlyFileSystemException();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void createLink(final Path link, final Path existing)
         throws IOException
@@ -157,6 +161,7 @@ public final class ReadOnlyFileSystemProvider
         throw new ReadOnlyFileSystemException();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void delete(final Path path)
         throws IOException
@@ -164,6 +169,7 @@ public final class ReadOnlyFileSystemProvider
         throw new ReadOnlyFileSystemException();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public boolean deleteIfExists(final Path path)
         throws IOException
@@ -178,6 +184,7 @@ public final class ReadOnlyFileSystemProvider
         return delegate.readSymbolicLink(link);
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void copy(final Path source, final Path target,
         final CopyOption... options)
@@ -186,6 +193,7 @@ public final class ReadOnlyFileSystemProvider
         throw new ReadOnlyFileSystemException();
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void move(final Path source, final Path target,
         final CopyOption... options)
@@ -245,6 +253,7 @@ public final class ReadOnlyFileSystemProvider
         return delegate.readAttributes(path, attributes, options);
     }
 
+    @SuppressWarnings("RedundantThrowsDeclaration")
     @Override
     public void setAttribute(final Path path, final String attribute,
         final Object value, final LinkOption... options)
