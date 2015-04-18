@@ -1,8 +1,8 @@
 package com.github.fge.filesystem.deletion;
 
 import com.github.fge.filesystem.exceptions.RecursiveDeletionException;
-import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -87,15 +87,17 @@ public final class KeepGoingDeletionVisitorTest
 
         Files.walkFileTree(dir3, visitor);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
-        /**
-         * All the directories should be deleted
-         */
-        soft.assertThat(dir3).doesNotExist();
-        soft.assertThat(dir4).doesNotExist();
-        soft.assertThat(dir5).doesNotExist();
-
-        soft.assertAll();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            /**
+             * All the directories should be deleted
+             */
+            soft.assertThat(dir3).doesNotExist();
+            soft.assertThat(dir4).doesNotExist();
+            soft.assertThat(dir5).doesNotExist();
+        }
     }
 
     @AfterClass

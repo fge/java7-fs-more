@@ -12,9 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static java.nio.file.attribute.PosixFilePermission.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 
 public final class ModeParserTest
 {

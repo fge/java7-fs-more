@@ -1,10 +1,10 @@
 package com.github.fge.filesystem.copy;
 
 import com.github.fge.filesystem.exceptions.RecursiveCopyException;
-import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -79,20 +79,21 @@ public final class KeepGoingCopyVisitorTest
 
         Files.walkFileTree(srcSuccess, visitor);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
-
         Path path;
 
-        path = dstSuccess.resolve("dir1");
-        soft.assertThat(path).exists().isDirectory();
-        path = path.resolve("file1");
-        soft.assertThat(path).exists().isRegularFile();
-        path = path.resolveSibling("file2");
-        soft.assertThat(path).exists().isRegularFile();
-        path = dstSuccess.resolve("dir2");
-        soft.assertThat(path).exists().isDirectory();
-
-        soft.assertAll();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            path = dstSuccess.resolve("dir1");
+            soft.assertThat(path).exists().isDirectory();
+            path = path.resolve("file1");
+            soft.assertThat(path).exists().isRegularFile();
+            path = path.resolveSibling("file2");
+            soft.assertThat(path).exists().isRegularFile();
+            path = dstSuccess.resolve("dir2");
+            soft.assertThat(path).exists().isDirectory();
+        }
     }
 
     @Test

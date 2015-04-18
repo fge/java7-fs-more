@@ -20,8 +20,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 import static org.mockito.Mockito.mock;
 
 public final class MoreFilesZipTest

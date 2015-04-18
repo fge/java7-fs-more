@@ -1,9 +1,9 @@
 package com.github.fge.filesystem.copy;
 
-import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -18,8 +18,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 
 public final class FailFastCopyVisitorTest
 {
@@ -77,20 +77,22 @@ public final class FailFastCopyVisitorTest
 
         Files.walkFileTree(srcSuccess, visitor);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
-
         Path path;
 
-        path = dstSuccess.resolve("dir1");
-        soft.assertThat(path).exists().isDirectory();
-        path = path.resolve("file1");
-        soft.assertThat(path).exists().isRegularFile();
-        path = path.resolveSibling("file2");
-        soft.assertThat(path).exists().isRegularFile();
-        path = dstSuccess.resolve("dir2");
-        soft.assertThat(path).exists().isDirectory();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            path = dstSuccess.resolve("dir1");
+            soft.assertThat(path).exists().isDirectory();
+            path = path.resolve("file1");
+            soft.assertThat(path).exists().isRegularFile();
+            path = path.resolveSibling("file2");
+            soft.assertThat(path).exists().isRegularFile();
+            path = dstSuccess.resolve("dir2");
+            soft.assertThat(path).exists().isDirectory();
 
-        soft.assertAll();
+        }
     }
 
     @Test

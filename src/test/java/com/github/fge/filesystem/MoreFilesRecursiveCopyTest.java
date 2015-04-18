@@ -15,8 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Random;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 
 public final class MoreFilesRecursiveCopyTest
 {

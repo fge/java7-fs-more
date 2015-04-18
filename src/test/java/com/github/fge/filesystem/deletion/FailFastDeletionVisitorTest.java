@@ -1,7 +1,7 @@
 package com.github.fge.filesystem.deletion;
 
-import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -14,8 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
-import static com.github.fge.filesystem.helpers.CustomAssertions.shouldHaveThrown;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 
 public final class FailFastDeletionVisitorTest
 {
@@ -84,13 +84,14 @@ public final class FailFastDeletionVisitorTest
 
         Files.walkFileTree(withSymlink, visitor);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
-
-        soft.assertThat(symlinkTarget).exists();
-        soft.assertThat(symlink).doesNotExist();
-        soft.assertThat(withSymlink).doesNotExist();
-
-        soft.assertAll();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            soft.assertThat(symlinkTarget).exists();
+            soft.assertThat(symlink).doesNotExist();
+            soft.assertThat(withSymlink).doesNotExist();
+        }
     }
 
     @Test

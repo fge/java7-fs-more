@@ -1,7 +1,7 @@
 package com.github.fge.filesystem;
 
-import com.github.fge.filesystem.helpers.CustomSoftAssertions;
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -19,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.github.fge.filesystem.helpers.CustomAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public final class MoreFilesTest
 {
@@ -46,13 +47,19 @@ public final class MoreFilesTest
         throws IOException
     {
         final String permstring = "rw-rw-rw-";
+        final Set<PosixFilePermission> expectedPerms
+            = PosixFilePermissions.fromString(permstring);
 
         final Path createdFile = fs.getPath("/createdFile");
         final Path actual = MoreFiles.createFile(createdFile, permstring);
 
         assertThat(actual).isNotNull();
-        assertThat(actual).exists().isRegularFile()
-            .hasPosixPermissions(permstring);
+        assertThat(actual).exists().isRegularFile();
+
+        final Set<PosixFilePermission> actualPerms
+            = Files.getPosixFilePermissions(actual);
+
+        assertThat(actualPerms).isEqualTo(expectedPerms);
     }
 
     @Test
@@ -60,13 +67,19 @@ public final class MoreFilesTest
         throws IOException
     {
         final String permstring = "rwxr-x---";
+        final Set<PosixFilePermission> expectedPerms
+            = PosixFilePermissions.fromString(permstring);
 
         final Path dir = fs.getPath("/dir");
         final Path actual = MoreFiles.createDirectory(dir, permstring);
 
         assertThat(actual).isNotNull();
-        assertThat(actual).exists().isDirectory()
-            .hasPosixPermissions(permstring);
+        assertThat(actual).exists().isDirectory();
+
+        final Set<PosixFilePermission> actualPerms
+            = Files.getPosixFilePermissions(actual);
+
+        assertThat(actualPerms).isEqualTo(expectedPerms);
     }
 
 
@@ -77,21 +90,31 @@ public final class MoreFilesTest
         final Path target = fs.getPath("/dir1/dir2/dir3");
 
         final String permString = "rwxr-xr-x";
+        final Set<PosixFilePermission> expectedPerms
+            = PosixFilePermissions.fromString(permString);
+
         MoreFiles.createDirectories(target, permString);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
+        Path tmp;
+        Set<PosixFilePermission> perms;
 
-        Path tmp = target;
-        soft.assertThat(tmp).exists().isDirectory()
-            .hasPosixPermissions(permString);
-        tmp = tmp.getParent();
-        soft.assertThat(tmp).exists().isDirectory()
-            .hasPosixPermissions(permString);
-        tmp = tmp.getParent();
-        soft.assertThat(tmp).exists().isDirectory()
-            .hasPosixPermissions(permString);
-
-        soft.assertAll();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            tmp = target;
+            perms = Files.getPosixFilePermissions(tmp);
+            soft.assertThat(tmp).exists().isDirectory();
+            soft.assertThat(perms).isEqualTo(expectedPerms);
+            tmp = tmp.getParent();
+            perms = Files.getPosixFilePermissions(tmp);
+            soft.assertThat(tmp).exists().isDirectory();
+            soft.assertThat(perms).isEqualTo(expectedPerms);
+            tmp = tmp.getParent();
+            perms = Files.getPosixFilePermissions(tmp);
+            soft.assertThat(tmp).exists().isDirectory();
+            soft.assertThat(perms).isEqualTo(expectedPerms);
+        }
     }
 
     @Test(dependsOnMethods = "createDirectoriesWillCreateParents")
@@ -103,8 +126,16 @@ public final class MoreFilesTest
         final Path actual
             = MoreFiles.createDirectories(target, "rwx------");
 
-        assertThat(actual).isNotNull().exists().isDirectory()
-            .hasPosixPermissions("rwxr-xr-x").isEqualTo(target);
+        final Set<PosixFilePermission> perms
+            = PosixFilePermissions.fromString("rwxr-xr-x");
+
+        assertThat(actual).isNotNull().exists().isDirectory();
+        assertThat(actual).isEqualTo(target);
+
+        final Set<PosixFilePermission> actualPerms
+            = Files.getPosixFilePermissions(actual);
+
+        assertThat(actualPerms).isEqualTo(perms);
     }
 
     @Test
@@ -122,8 +153,19 @@ public final class MoreFilesTest
         throws IOException
     {
         final Path modified = MoreFiles.setTimes(path, fileTime);
-        assertThat(modified).isNotNull().exists().hasAccessTime(fileTime)
-            .hasModificationTime(fileTime).isEqualTo(path);
+
+        assertThat(modified).isNotNull().exists().isEqualTo(path);
+
+        final BasicFileAttributes attrs = Files.readAttributes(modified,
+            BasicFileAttributes.class);
+
+        FileTime actualTime;
+
+        actualTime = attrs.lastAccessTime();
+        assertThat(actualTime).isEqualTo(fileTime);
+
+        actualTime = attrs.lastModifiedTime();
+        assertThat(actualTime).isEqualTo(fileTime);
     }
 
     @DataProvider
@@ -152,21 +194,23 @@ public final class MoreFilesTest
         Files.createFile(target);
         Files.setPosixFilePermissions(target, initial);
 
-        final CustomSoftAssertions soft = CustomSoftAssertions.create();
-
         final Path ret = MoreFiles.changeMode(target, instructions);
 
-        soft.assertThat(ret).isNotNull();
+        try (
+            final AutoCloseableSoftAssertions soft
+                = new AutoCloseableSoftAssertions();
+        ) {
+            soft.assertThat(ret).isNotNull();
 
-        final Set<PosixFilePermission> actual
-            = Files.getPosixFilePermissions(ret);
+            final Set<PosixFilePermission> actual
+                = Files.getPosixFilePermissions(ret);
 
-        soft.assertThat(actual).as("permissions are correctly modified")
-            .isEqualTo(expected);
+            soft.assertThat(actual).as("permissions are correctly modified")
+                .isEqualTo(expected);
 
-        Files.delete(target);
-
-        soft.assertAll();
+        } finally {
+            Files.delete(target);
+        }
     }
 
 
