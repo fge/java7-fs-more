@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.spi.FileTypeDetector;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 public final class ZipFileTypeDetector
@@ -20,6 +21,8 @@ public final class ZipFileTypeDetector
             final ZipInputStream z = new ZipInputStream(in);
         ) {
             return "application/zip";
+        } catch (ZipException ignored) {
+            return null;
         }
     }
 }
