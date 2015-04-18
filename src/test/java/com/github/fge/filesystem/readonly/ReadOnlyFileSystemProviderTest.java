@@ -1,4 +1,4 @@
-package com.github.fge.filesystem;
+package com.github.fge.filesystem.readonly;
 
 
 import org.testng.annotations.BeforeMethod;
@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 
 public final class ReadOnlyFileSystemProviderTest
 {
-
     private Path path;
     private FileSystemProvider delegate;
     private ReadOnlyFileSystemProvider provider;
