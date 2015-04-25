@@ -102,7 +102,6 @@ public final class FileTypeDetectorTest
         File file = new File(classLoader.getResource(Paths.get(resourcePath).toString()).getFile());
         assertThat(imageTypeDetector.probeContentType(file.toPath())).isEqualTo(
             mimeType);
-        //assertThat(Files.probeContentType(path)).isEqualTo(mimeType);
     }
 
     @AfterMethod
