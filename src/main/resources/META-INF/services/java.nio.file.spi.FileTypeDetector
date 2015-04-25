@@ -1,2 +1,3 @@
 com.github.fge.filesystem.ftd.PngFileTypeDetector
 com.github.fge.filesystem.ftd.ZipFileTypeDetector
+com.github.fge.filesystem.ftd.ImageTypeDetector
